@@ -2,59 +2,53 @@
 
 <h1 align="center">NightFleet</h1>
 <p align="center"><strong>Battleship where your fleet is a hash, not a promise.</strong></p>
-<p align="center">Provably fair hidden-fleet Battleship on Midnight.</p>
+<p align="center">The first fully playable, provably fair hidden-fleet game on Midnight.</p>
 
 <p align="center">
-<a href="https://nightfleet.vercel.app">Live demo</a> ·
+<a href="https://nightfleet.vercel.app">Play the demo</a> ·
+<a href="#section-02--the-disparity">The disparity</a> ·
 <a href="#section-04--the-contract">The contract</a> ·
-<a href="#section-06--engineering">Engineering</a> ·
 <a href="#section-08--run-it">Run it</a>
 </p>
 
+<p align="center"><img src="screenshots/gameplay.png" width="860" alt="NightFleet gameplay - your waters vs the fog"></p>
+
 ---
 
-Every Battleship turn asks one player to answer "hit or miss?" honestly about
-a board the other player cannot see. On a game server you trust the operator
-not to peek. On a transparent blockchain the board would be public. Neither
-works.
+Every Battleship turn asks one player a question only they can answer:
+*was that a hit?* For seventy years the answer ran on trust. On a game server,
+the operator sees both fleets and tells you whatever it likes. On a transparent
+blockchain, there is nowhere to hide the fleet at all. Either way, the one
+thing the game is about - a secret - is gone.
 
-NightFleet's answer: **stop trusting, start proving.** Your fleet is committed
-as `hash(board, salt)` before the first shot. Every hit/miss answer is a
-zero-knowledge proof against that commitment. Lying is not against the rules -
-it is mathematically impossible.
+NightFleet deletes the trust assumption. Your fleet is committed on-chain as
+`hash(board, salt)` before the first shot. Every hit-or-miss answer after that
+is a zero-knowledge proof checked against that commitment. **Cheating is not
+banned. It is mathematically impossible.**
 
 ---
 
 ## SECTION 01 · THE PROBLEM
 
-Hidden-information games are the canonical zero-knowledge use case, and
-Battleship is the cleanest one. The whole game is one private fact: where your
-ships are.
+Hidden information is the soul of strategy games - and the thing blockchains
+were never built to hold. Public ledgers publish everything. Private servers
+hide everything, including their own cheating. An entire genre of games has
+been locked out of on-chain ownership, real stakes, and trustless play because
+nobody could keep one small secret: where the ships are.
 
-- **On a server**, the operator sees both fleets and can feed you any answer.
-- **On a transparent chain**, there is nowhere to hide the fleet at all.
-- **In NightFleet**, the fleet never leaves your device, and every answer about
-  it arrives with a proof.
+## SECTION 02 · THE DISPARITY
 
-Privacy is not decoration here. Without it, the game has no honest answer to
-give.
+| | A game server | A transparent chain | **NightFleet** |
+|---|---|---|---|
+| Who sees your fleet | The operator | Everyone | **No one** |
+| Hit/miss answers | Trust us | Impossible to ask | **Proven, every turn** |
+| Move ships mid-game | Undetectable | No fleet to move | **Fails its proof** |
+| Verify the winner | Read their database | - | **Audit the chain** |
+| The secret lives | In their memory | Nowhere | **In your device, always** |
 
-## SECTION 02 · WHAT WE BUILT
+The gap between "trust us" and "verify it yourself" is the entire product.
 
-A complete, playable implementation of the commit-reveal Battleship protocol -
-contract, game engine, CLI, browser app, AI opponent, and wallet integration.
-
-| Package | What it does | Proof it works |
-|---|---|---|
-| `contract/` | The Compact contract: 6 circuits, private board witnesses, public commitments | Compiles under pinned `compactc 0.31.1`; 54-case adversarial suite |
-| `shared/` | Network presets, fleet rules, toolchain pins | 36 tests, mainnet-refusal guard |
-| `api/` | `LocalGame`: the full loop in-process, replayable action log | Drives every CLI and browser game |
-| `cli/` | Play a full game in your terminal | `npm run play` - 78 tests |
-| `app/` | The browser game at the demo URL | Live at [nightfleet.vercel.app](https://nightfleet.vercel.app) |
-| `ai/` | Deterministic AI opponent (3 tiers) + referee narrator | Plays through the real game API - no fake mode |
-| `wallet/` | Lace wallet detection, redaction, Preprod guard | 132 tests; refuses mainnet by construction |
-
-## SECTION 03 · HOW THE PRIVACY WORKS
+## SECTION 03 · HOW IT WORKS
 
 ```mermaid
 sequenceDiagram
@@ -70,44 +64,47 @@ sequenceDiagram
     P->>L: revealBoard: salt published - anyone can audit
 ```
 
-**Private (never leaves the device):** fleet layout, board salt, everything not
+**Private, forever on your device:** fleet layout, board salt, everything not
 explicitly disclosed.
 
-**Public (on the ledger):** the commitment hash, turn order, shot coordinates,
+**Public, on the ledger:** the commitment hash, turn order, shot coordinates,
 hit/miss results.
 
-The contract enforces three guarantees:
+Three guarantees, enforced by the contract - not by policy:
 
-1. The initial placement is a **valid fleet** (ships `[3, 2, 2]` on an 8x8 sea,
-   in bounds, non-overlapping).
-2. Every report is **consistent with the committed board** - no moving ships
-   mid-game, no re-commits, no duplicate shots, no out-of-turn play.
-3. The win condition is proven from **disclosed hits only**.
+1. The opening placement is a **valid fleet** (ships `[3, 2, 2]` on an 8x8
+   sea, in bounds, non-overlapping) - proven before play begins.
+2. Every answer is **consistent with the committed board** - no moved ships,
+   no re-commits, no duplicate shots, no out-of-turn play.
+3. A win is claimed only on **disclosed, proven hits** - then the salt reveals
+   so anyone can audit the whole game.
 
 ## SECTION 04 · THE CONTRACT
 
-Six exported circuits in `contract/src/nightfleet.compact`:
+Six circuits in `contract/src/nightfleet.compact`:
 
 `joinGame` · `commitBoard` · `fire` · `report` · `claimWin` · `revealBoard`
 
-Boards live in private witness state; commitments, turns, and results live in
-public ledger state. Toolchain is pinned: `compactc 0.31.1`,
+Boards live in private witness state; commitments and results live in public
+ledger state. Toolchain pinned: `compactc 0.31.1`,
 `@midnight-ntwrk/compact-runtime 0.16.0`. **Preprod only** - the code refuses
 mainnet by construction, and real-money wagering is out of scope by policy.
 
-## SECTION 05 · WHAT'S LIVE
+## SECTION 05 · WHAT WE BUILT
 
-| Component | Status | How to verify |
+Not a slide. A complete, playable system.
+
+| Package | What it does | Proof it works |
 |---|---|---|
-| Game loop (commit -> fire -> report -> win -> reveal) | **LIVE** | `npm run play` in `cli/` - full game vs AI |
-| Browser demo | **LIVE** | [nightfleet.vercel.app](https://nightfleet.vercel.app) |
-| AI opponent + narrator | **LIVE** | plays through the real game API, 3 difficulties |
-| Contract compilation | **LIVE** | `npm run compile` in `contract/` (pinned compactc) |
-| Test suites | **267 passing** | `npm test` per package |
-| Preprod deployment | **NEXT** | owner-operated: Docker proof server + Lace + faucet |
+| `contract/` | The Compact contract: 6 circuits, private witnesses, public commitments | Compiles under pinned `compactc 0.31.1`; 54-case adversarial suite |
+| `shared/` | Protocol constants, fleet rules, network presets | 36 tests; refuses mainnet |
+| `api/` | `LocalGame`: the full loop in-process, replayable action log | Drives every CLI and browser game |
+| `cli/` | A full game in your terminal | `npm run play` - 78 tests |
+| `app/` | The browser game | Live at [nightfleet.vercel.app](https://nightfleet.vercel.app) |
+| `ai/` | Deterministic opponent (3 tiers) + referee narrator | Plays through the real game API - no fake mode |
+| `wallet/` | Lace detection, redaction, Preprod guard | 132 tests |
 
-The demo runs the same rules engine the contract is written against, in the
-page: no wallet, no chain, no proofs. It is the game loop, not the deployment.
+<p align="center"><img src="screenshots/fire-hit.png" width="860" alt="NightFleet - commitments visible, hit proven"></p>
 
 ## SECTION 06 · ENGINEERING
 
@@ -120,17 +117,38 @@ page: no wallet, no chain, no proofs. It is the game loop, not the deployment.
 | Cheat vectors covered | moved ships, re-committed boards, duplicate shots, out-of-turn play |
 
 The adversarial suite (`contract/test/nightfleet.adversarial.test.js`) plays
-the cheater: it tries to move ships after committing, commit twice, fire twice,
-answer out of turn - and asserts each attempt fails its proof.
+the cheater: move ships after committing, commit twice, fire twice, answer out
+of turn - and asserts every attempt fails its proof.
 
 ## SECTION 07 · WHY MIDNIGHT
 
-The fleet IS the secret the game is built on - privacy is essential here, not
-decorative. Compact circuits keep the private witness off-chain; only proofs
-touch the ledger. NightFleet is a small, complete, playable demonstration that
-a real consumer game can run on Midnight's private state with a Web2 feel.
+The fleet is not a feature with privacy bolted on - the privacy IS the game.
+Compact circuits keep the witness off-chain and put only proofs on the ledger,
+which is exactly the shape this problem demands.
 
-## SECTION 08 · RUN IT
+And NightFleet gives back more than a game. It is a reference implementation
+for every team building private-state consumer apps on Midnight: witness
+design, commit-reveal protocols, adversarial test discipline, a deterministic
+rules engine shared verbatim between contract, CLI, and browser, and a
+Web2-smooth player experience on top of zero-knowledge rails. The patterns
+here - how to hide state, prove claims, and keep the UX human - are the
+patterns the whole ecosystem needs next.
+
+## SECTION 08 · WHAT'S LIVE
+
+| Component | Status | How to verify |
+|---|---|---|
+| Game loop (commit -> fire -> report -> win -> reveal) | **LIVE** | `npm run play` in `cli/` - full game vs AI |
+| Browser demo | **LIVE** | [nightfleet.vercel.app](https://nightfleet.vercel.app) |
+| AI opponent + narrator | **LIVE** | plays through the real game API |
+| Contract compilation | **LIVE** | `npm run compile` in `contract/` (pinned compactc) |
+| Test suites | **267 passing** | `npm test` per package |
+| Preprod deployment | **NEXT** | owner-operated: Docker proof server + Lace + faucet |
+
+The demo runs the same rules engine the contract is written against, in the
+page: no wallet, no chain, no proofs. It is the game loop, not the deployment.
+
+## SECTION 09 · RUN IT
 
 ```bash
 # 1. compile the contract (regenerates the gitignored managed/ assets)
