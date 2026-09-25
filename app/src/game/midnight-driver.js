@@ -1,51 +1,12 @@
-// MidnightDriver - the seat the proof-backed driver will take.
+// MidnightDriver - the proof-backed driver, live.
 //
-// STATUS: declared, not implemented. Every call rejects with the reason below.
-// It is here so the seam is a real, testable two-implementation interface
-// rather than a promise in a comment, and so the driver picker in the UI can
-// show the path that is coming and why it is not live yet.
-//
-// WHAT IT WILL DO
-// ---------------
-// `api/LocalGame` already drives the five circuits (joinGame, commitBoard,
-// fire, report, claimWin, revealBoard) through @midnight-ntwrk/compact-runtime.
-// That runtime is Node-side: it loads the compiled ZK assets from
-// contract/managed/ and uses node:crypto. It will not run inside a browser
-// bundle, and forcing it in (polyfills, shims) buys a broken build, not a game.
-//
-// So the real implementation is a *transport*, not a port:
-//
-//   browser  ──HTTP/WS──►  node host (or Lace + proof server)
-//   UI           this file        api/LocalGame  ─►  contract/managed  ─►  proof server
-//
-// Each method below maps 1:1 onto a LocalGame call:
-//
-//   newGame()      -> LocalGame.create() + addPlayer() x2      (or join a deployed address)
-//   commitFleet()  -> game.commitBoard(handle, board, salt)    board NEVER leaves the browser
-//                                                              in the wallet build; it is the
-//                                                              witness fed to the local prover
-//   fire()         -> game.fire(handle, coord) then await the defender's report()
-//   getState()     -> game.state(), projected through the same fog rule as here
-//   getShotLog()   -> game.shotLog()
-//   revealFleets() -> game.revealBoard(handle)
-//
-// THE ONE RULE A REAL IMPLEMENTATION MUST NOT BREAK
-// -------------------------------------------------
-// `getState()` must project the ledger the way BrowserLocalDriver does: the
-// opponent seat carries marks for fired cells and nothing else. The contract
-// guarantees this on-chain (report() discloses a single cell), so the driver's
-// job is not to re-derive the guarantee but to avoid *widening* it - e.g. by
-// passing through a debug field, or by caching a revealed board and serving it
-// before the game is FINISHED. test/fog-of-war.test.js runs its fog assertions
-// against the driver interface, not against one class, so a future
-// implementation inherits that test by construction.
+// The seat this file held as a stub is now filled by ChainDriver
+// (src/chain/chain-driver.js): Lace connects through the DApp Connector,
+// one fresh contract deployment per squad, every move a proven circuit call
+// on Midnight Preprod. The driver interface and the fog rule are unchanged -
+// the UI cannot tell which implementation sits behind it, by design.
 
-import { UnavailableDriver } from './driver.js';
-
-export const MIDNIGHT_DRIVER_REASON =
-  'The proof-backed driver is not wired up yet. @midnight-ntwrk/compact-runtime ' +
-  'runs the real circuits in Node, not in the browser, so this seat waits on the ' +
-  'proof-server transport (M1). Play the in-browser local game in the meantime.';
+import { ChainDriver } from '../chain/chain-driver.js';
 
 export const MIDNIGHT_DRIVER_INFO = Object.freeze({
   id: 'midnight-preprod',
@@ -58,9 +19,8 @@ export const MIDNIGHT_DRIVER_INFO = Object.freeze({
 });
 
 /**
- * @returns {UnavailableDriver} a shape-complete driver whose every method
- * rejects with MIDNIGHT_DRIVER_REASON.
+ * @returns {ChainDriver} the proof-backed driver (connects Lace on first use)
  */
-export function createMidnightDriver() {
-  return new UnavailableDriver(MIDNIGHT_DRIVER_INFO, MIDNIGHT_DRIVER_REASON);
+export function createMidnightDriver(opts = {}) {
+  return new ChainDriver(opts);
 }

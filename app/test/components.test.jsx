@@ -237,12 +237,12 @@ describe('<App> end to end against the in-browser driver', () => {
     });
   });
 
-  it('offers the proof-backed engine but states it is not available', async () => {
+  it('offers the proof-backed engine as a playable squad mode', async () => {
     render(<App />);
     const midnight = await screen.findByRole('button', { name: /midnight preprod/i });
     await waitFor(() => expect(screen.getByText(/local session/i)).toBeInTheDocument());
-    expect(midnight).toBeDisabled();
-    expect(midnight).toHaveTextContent(/not wired up yet/i);
+    expect(midnight).toBeEnabled();
+    expect(midnight).toHaveTextContent(/squad link/i);
   });
 });
 

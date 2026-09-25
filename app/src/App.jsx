@@ -6,6 +6,7 @@ import { Result } from './components/Result.jsx';
 import { useGame } from './hooks/useGame.js';
 import { PHASE } from './game/protocol.js';
 import { createDriverById, DRIVER_IDS, listDrivers } from './game/drivers.js';
+import { parseSquadLink, squadLinkFor } from './chain/squad.js';
 
 /**
  * Screen routing is derived from the driver's phase rather than kept in its own
@@ -14,7 +15,11 @@ import { createDriverById, DRIVER_IDS, listDrivers } from './game/drivers.js';
  *   no game yet -> Home     PLACED_* -> FleetSetup     PLAYING/FINISHED -> Battle
  */
 export function App() {
-  const [driverId, setDriverId] = useState(DRIVER_IDS.LOCAL);
+  // A squad link in the URL pre-selects the on-chain engine and the join box.
+  const initialSquadLink = globalThis.location?.hash?.includes('#/game/') ? globalThis.location.hash : '';
+  const [driverId, setDriverId] = useState(
+    initialSquadLink && parseSquadLink(initialSquadLink) ? DRIVER_IDS.MIDNIGHT : DRIVER_IDS.LOCAL,
+  );
   const [started, setStarted] = useState(false);
   const [narrationOn, setNarrationOn] = useState(true);
   const drivers = useMemo(() => listDrivers(), []);
@@ -60,6 +65,7 @@ export function App() {
             onDriverChange={setDriverId}
             onStart={start}
             busy={game.busy}
+            initialSquadLink={initialSquadLink}
           />
         ) : null}
 
@@ -68,6 +74,9 @@ export function App() {
             busy={game.busy}
             error={game.error}
             onCommit={(board) => game.commitFleet(board)}
+            squadLink={driverId === DRIVER_IDS.MIDNIGHT && game.state?.contractAddress
+              ? squadLinkFor(game.state.contractAddress)
+              : null}
           />
         ) : null}
 
@@ -83,6 +92,7 @@ export function App() {
               narrationOn={narrationOn}
               onToggleNarration={setNarrationOn}
               onFire={(coord) => game.fire(coord)}
+              onReport={() => game.report()}
               onDismissError={game.dismissError}
             />
             <Result

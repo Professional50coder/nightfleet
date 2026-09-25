@@ -22,6 +22,10 @@ import { DriverError } from '../game/driver.js';
 import { ledger } from '../vendor/nightfleet-contract/index.js';
 import { PRIVATE_STATE_ID } from './nightfleet-chain.js';
 import * as chain from './nightfleet-chain.js';
+import { connectWallet } from './lace.js';
+import { createBrowserProviders } from './providers.js';
+import { BrowserPrivateStateProvider } from './private-state.js';
+import { freshPrivateState } from './nightfleet-chain.js';
 
 const PHASE_NAMES = ['OPEN', 'PLACED_1', 'PLACED_2', 'PLAYING', 'FINISHED'];
 const toHex32 = (bytes) => Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
@@ -51,11 +55,19 @@ export class ChainDriver {
    * @param {string} deps.contractAddress the deployment this driver plays
    * @param {() => Promise<object>} [deps.queryContractState] indexer read seam for tests
    */
-  constructor({ providers, contractAddress, queryContractState }) {
-    this.providers = providers;
-    this.contractAddress = contractAddress;
-    this.queryContractState = queryContractState
-      ?? (() => providers.publicDataProvider.queryContractState(contractAddress));
+  constructor({ providers, contractAddress, queryContractState, connect = connectWallet, pollMs = 12000 } = {}) {
+    this.providers = providers ?? null;
+    this.contractAddress = contractAddress ?? null;
+    this.connect = connect;
+    this.pollMs = pollMs;
+    this.poller = null;
+    // Tests inject queryContractState; production reads the indexer.
+    this.#queryOverride = queryContractState ?? null;
+    if (this.providers && this.contractAddress && !this.#queryOverride) {
+      this.queryContractState = () => this.providers.publicDataProvider.queryContractState(this.contractAddress);
+    } else {
+      this.queryContractState = this.#queryOverride;
+    }
     this.listeners = new Set();
     this.info = {
       id: 'midnight-preprod',
@@ -71,6 +83,36 @@ export class ChainDriver {
   #emit() { this.listeners.forEach((fn) => fn()); }
   subscribe(listener) { this.listeners.add(listener); return () => this.listeners.delete(listener); }
 
+  #queryOverride = null;
+
+  /** Connect the wallet and build providers on first use. */
+  async #ensure() {
+    if (!this.providers) {
+      const { api } = await this.connect({ networkId: 'preprod' });
+      const privateStateProvider = new BrowserPrivateStateProvider();
+      this.providers = await createBrowserProviders(
+        api, privateStateProvider, globalThis.location?.origin ?? 'http://localhost',
+      );
+    }
+    if (!this.contractAddress) throw new DriverError('no game bound yet - create or join a squad first');
+    this.providers.privateStateProvider.setContractAddress(this.contractAddress);
+    if (!this.#queryOverride) {
+      this.queryContractState = () => this.providers.publicDataProvider.queryContractState(this.contractAddress);
+    }
+    if (!this.poller) {
+      this.poller = setInterval(() => {
+        this.getState().then(() => this.#emit()).catch(() => {});
+      }, this.pollMs);
+      if (typeof this.poller.unref === 'function') this.poller.unref();
+    }
+  }
+
+  /** A seat must exist before we can hold secrets for it. */
+  async #ensureSeatState() {
+    const psp = this.providers.privateStateProvider;
+    if (!(await psp.get(PRIVATE_STATE_ID))) await psp.set(PRIVATE_STATE_ID, freshPrivateState());
+  }
+
   async #state() {
     const psp = this.providers.privateStateProvider;
     const state = await psp.get(PRIVATE_STATE_ID);
@@ -82,8 +124,19 @@ export class ChainDriver {
 
   #save(state) { return this.providers.privateStateProvider.set(PRIVATE_STATE_ID, state); }
 
-  /** Join the game on-chain and remember which seat we took. */
-  async newGame() {
+  /**
+   * Create or join a squad game.
+   * No `contractAddress`: deploy a fresh contract (host path) and seat p1.
+   * With `contractAddress` (from a squad link): bind to that deployment and seat p2.
+   */
+  async newGame({ contractAddress } = {}) {
+    if (contractAddress) this.contractAddress = contractAddress;
+    await this.#ensure();
+    if (!contractAddress) {
+      this.contractAddress = await chain.deployNightfleet(this.providers);
+      this.providers.privateStateProvider.setContractAddress(this.contractAddress);
+    }
+    await this.#ensureSeatState();
     const before = readLedger(await this.queryContractState());
     const seated = (hex) => hex && /^[0-9a-f]{64}$/.test(hex) && !/^0+$/.test(hex);
     if (seated(before.p1) && seated(before.p2)) {
@@ -99,6 +152,7 @@ export class ChainDriver {
 
   /** Commit the fleet: secrets in, hash out. The board never leaves the browser. */
   async commitFleet(board) {
+    await this.#ensure();
     const state = await this.#state();
     state.board = board.map((c) => BigInt(c));
     if (!state.salt?.some((b) => b !== 0)) state.salt = crypto.getRandomValues(new Uint8Array(32));
@@ -110,6 +164,7 @@ export class ChainDriver {
   }
 
   async fire(coord) {
+    await this.#ensure();
     await chain.fire(this.providers, this.contractAddress, coord.x, coord.y);
     this.#emit();
     return this.getState();
@@ -117,6 +172,7 @@ export class ChainDriver {
 
   /** Answer the shot pending against our fleet (the defender's move). */
   async report() {
+    await this.#ensure();
     await chain.report(this.providers, this.contractAddress);
     this.#emit();
     return this.getState();
@@ -178,6 +234,7 @@ export class ChainDriver {
   async getNarration() { return []; }
 
   async revealFleets() {
+    await this.#ensure();
     await chain.revealBoard(this.providers, this.contractAddress);
     const state = await this.#state();
     return { yours: state.board.map(Number), theirs: null, state: await this.getState() };

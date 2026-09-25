@@ -74,6 +74,7 @@ export function useGame({ seed = 1, difficulty = 'medium', createDriver } = {}) 
   const newGame = useCallback((opts) => run(() => driver.newGame(opts)), [driver, run]);
   const commitFleet = useCallback((board) => run(() => driver.commitFleet(board)), [driver, run]);
   const fire = useCallback((coord) => run(() => driver.fire(coord)), [driver, run]);
+  const report = useCallback(() => run(() => driver.report()), [driver, run]);
   const revealFleets = useCallback(() => run(() => driver.revealFleets()), [driver, run]);
   const dismissError = useCallback(() => setError(null), []);
 
@@ -89,6 +90,7 @@ export function useGame({ seed = 1, difficulty = 'medium', createDriver } = {}) 
     newGame,
     commitFleet,
     fire,
+    report,
     revealFleets,
     refresh,
     dismissError,

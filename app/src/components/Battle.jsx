@@ -17,7 +17,7 @@ import { MARK, PHASE, SEAT, coordinateToIndex, formatCoordinate } from '../game/
  */
 export function Battle({
   state, info, log, narration, busy, error,
-  narrationOn, onToggleNarration, onFire, onDismissError,
+  narrationOn, onToggleNarration, onFire, onReport, onDismissError,
 }) {
   const [ripple, setRipple] = useState(null); // enemy cell the player just fired at
 
@@ -38,6 +38,9 @@ export function Battle({
   const freshEnemy = last && last.seat === SEAT.YOU ? coordinateToIndex(last.coord) : null;
   const freshMine = last && last.seat === SEAT.OPPONENT ? coordinateToIndex(last.coord) : null;
   const playing = state.phase === PHASE.PLAYING && !state.winner;
+  // On-chain games: the opponent's shot sits in pendingShot until we answer
+  // it with a proven report(). The turn flag still names the attacker then.
+  const mustReport = playing && state.pendingShot && state.turn === SEAT.OPPONENT && typeof onReport === 'function';
 
   return (
     <section className="battle">
@@ -47,6 +50,15 @@ export function Battle({
         <p className="alert" role="alert">
           {error}
           <button type="button" className="btn btn--tiny" onClick={onDismissError}>dismiss</button>
+        </p>
+      ) : null}
+
+      {mustReport ? (
+        <p className="battle__answer">
+          A shot is waiting on your answer - the reply is proven against your committed fleet.{' '}
+          <button type="button" className="btn btn--primary btn--tiny" disabled={busy} onClick={onReport}>
+            {busy ? 'Proving…' : 'Answer the shot'}
+          </button>
         </p>
       ) : null}
 

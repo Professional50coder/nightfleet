@@ -15,7 +15,7 @@ import {
  * Commit stays disabled until `validatePlacement` - which ends in shared's
  * `assertValidFleet` - says the fleet is legal.
  */
-export function FleetSetup({ onCommit, busy = false, error = null }) {
+export function FleetSetup({ onCommit, busy = false, error = null, squadLink = null }) {
   const [placement, setPlacement] = useState(() => createPlacement());
   const [selectedId, setSelectedId] = useState('ship-1');
   const [orientation, setOrientation] = useState(ORIENTATION.HORIZONTAL);
@@ -99,6 +99,19 @@ export function FleetSetup({ onCommit, busy = false, error = null }) {
 
   return (
     <section className="panel setup" onKeyDown={onKeyDown}>
+      {squadLink ? (
+        <p className="setup__squad muted small">
+          Squad created on Preprod. Share this link with your opponent:{' '}
+          <button
+            type="button"
+            className="btn btn--tiny mono"
+            onClick={() => navigator.clipboard?.writeText(squadLink)}
+            title={squadLink}
+          >
+            copy squad link
+          </button>
+        </p>
+      ) : null}
       <header className="panel__head">
         <h2>Place your fleet</h2>
         <p className="muted">

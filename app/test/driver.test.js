@@ -5,10 +5,10 @@
 // to satisfy the same shape before it can be listed.
 import { describe, expect, it } from 'vitest';
 import {
-  DRIVER_METHODS, DriverError, UnavailableDriver, assertDriverShape, emptySeatView,
+  DRIVER_METHODS, DriverError, assertDriverShape, emptySeatView,
 } from '../src/game/driver.js';
 import { BrowserLocalDriver, displayCommitment } from '../src/game/local-driver.js';
-import { createMidnightDriver, MIDNIGHT_DRIVER_REASON } from '../src/game/midnight-driver.js';
+import { createMidnightDriver } from '../src/game/midnight-driver.js';
 import { DRIVER_IDS, createDriverById, listDrivers } from '../src/game/drivers.js';
 import { FLEET_CELLS, MARK, PHASE, SEAT, indexToCoordinate, randomFleet } from '../src/game/protocol.js';
 import { mulberry32 } from '../../ai/opponent.js';
@@ -58,37 +58,35 @@ describe('driver shape', () => {
   });
 });
 
-describe('MidnightDriver stub', () => {
-  it('describes itself as unavailable with a reason, instead of throwing', async () => {
+describe('MidnightDriver (live, chain-backed)', () => {
+  it('describes itself as available and proof-backed', async () => {
     const info = await createMidnightDriver().describe();
-    expect(info.available).toBe(false);
+    expect(info.available).toBe(true);
     expect(info.provesMoves).toBe(true);
-    expect(info.reason).toBe(MIDNIGHT_DRIVER_REASON);
+    expect(info.onChain).toBe(true);
   });
 
-  it('rejects every game call with the same player-facing message', async () => {
+  it('asks for a Midnight wallet when the browser has none', async () => {
     const d = createMidnightDriver();
-    for (const method of ['newGame', 'commitFleet', 'fire', 'getState', 'revealFleets']) {
-      await expect(d[method]()).rejects.toThrow(DriverError);
-      await expect(d[method]()).rejects.toThrow(/proof-backed driver is not wired up/);
+    // jsdom has no injected wallet: every game call fails at the connect
+    // step with the player-facing Lace guidance.
+    for (const method of ['newGame', 'commitFleet', 'fire', 'report', 'revealFleets']) {
+      await expect(d[method](method === 'commitFleet' ? Array(64).fill(0) : undefined))
+        .rejects.toThrow(/Lace|no game bound|no Midnight wallet/i);
     }
   });
 
-  it('explains that the Node-only runtime is the reason', () => {
-    expect(MIDNIGHT_DRIVER_REASON).toMatch(/compact-runtime/);
-  });
-
   it('still supports subscribe/unsubscribe so the app can mount it', () => {
-    const d = new UnavailableDriver({ id: 'x', name: 'x' }, 'nope');
+    const d = createMidnightDriver();
     const off = d.subscribe(() => {});
     expect(d.listeners.size).toBe(1);
     off();
     expect(d.listeners.size).toBe(0);
   });
 
-  it('is listed as unavailable by the registry', () => {
+  it('is listed as available by the registry', () => {
     const entry = listDrivers().find((d) => d.id === DRIVER_IDS.MIDNIGHT);
-    expect(entry.available).toBe(false);
+    expect(entry.available).toBe(true);
     expect(listDrivers().find((d) => d.id === DRIVER_IDS.LOCAL).available).toBe(true);
   });
 });

@@ -4,7 +4,7 @@
 // with the real class here. Nothing else in the app changes: the UI resolves a
 // driver through this registry and then only ever calls the interface.
 import { BrowserLocalDriver } from './local-driver.js';
-import { createMidnightDriver, MIDNIGHT_DRIVER_INFO, MIDNIGHT_DRIVER_REASON } from './midnight-driver.js';
+import { createMidnightDriver, MIDNIGHT_DRIVER_INFO } from './midnight-driver.js';
 
 export { DIFFICULTIES } from '../../../ai/opponent.js';
 
@@ -34,8 +34,9 @@ export function listDrivers() {
     },
     {
       ...MIDNIGHT_DRIVER_INFO,
-      available: false,
-      reason: MIDNIGHT_DRIVER_REASON,
+      available: true,
+      summary: MIDNIGHT_DRIVER_INFO.summary
+        + ' Two players, one squad link: the host deploys a fresh contract from the browser, the opponent joins from the link.',
     },
   ];
 }
