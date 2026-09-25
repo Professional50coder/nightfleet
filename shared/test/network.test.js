@@ -1,4 +1,4 @@
-// @nightfleet/shared/network tests: preset fidelity to docs/07, environment
+// @nightfleet/shared/network tests: preset fidelity, environment
 // overrides, validation failure modes, explorer helpers, and the invariant that
 // the wallet seed never leaks into a config object or a printable description.
 import { describe, it, expect } from 'vitest';
@@ -17,7 +17,7 @@ describe('presets', () => {
     expect(DEFAULT_NETWORK).toBe('preprod');
   });
 
-  it('matches the endpoints in docs/07 section 5', () => {
+  it('matches the documented Preprod endpoints', () => {
     expect(NETWORK_PRESETS.local.networkId).toBe('undeployed');
     expect(NETWORK_PRESETS.local.node).toContain('localhost:9944');
     expect(NETWORK_PRESETS.local.indexer).toContain('localhost:8088/api/v4/graphql');
@@ -133,7 +133,7 @@ describe('environment overrides', () => {
       .toThrow(/indexerWs must be a ws\/wss URL/);
   });
 
-  it('refuses a mainnet network id - out of scope (docs/PLAN.md section 4)', () => {
+  it('refuses a mainnet network id - out of scope', () => {
     expect(() => resolveNetwork('preprod', { [ENV_VARS.networkId]: 'mainnet' }))
       .toThrow(/out of scope/);
     expect(() => resolveNetwork('preprod', { [ENV_VARS.networkId]: 'MainNet' }))

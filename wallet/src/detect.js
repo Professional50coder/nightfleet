@@ -10,7 +10,7 @@
 //        { name, apiVersion, isEnabled(), serviceUriConfig(), enable() }
 //
 // NOT verified: which of these two a shipping Lace build actually injects, and
-// under which key. docs/07 names `window.midnight.mnLace`; we accept any key
+// under which key. The docs name `window.midnight.mnLace`; we accept any key
 // and rank Lace-looking ones first rather than hard-coding one.
 
 import { WalletError, WalletErrorCode } from './errors.js';

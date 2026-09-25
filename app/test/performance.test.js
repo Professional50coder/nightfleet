@@ -1,4 +1,4 @@
-// Stylesheet performance audit (docs/18 section 5): "60fps target: animate
+// Stylesheet performance audit : "60fps target: animate
 // transform/opacity only; avoid layout thrash." These tests make the rule
 // permanent - they fail if anyone adds a transition:all shortcut, a
 // transition on a layout property, or a keyframe that animates layout.
@@ -32,7 +32,7 @@ function keyframeBlocks(css) {
   return blocks;
 }
 
-describe('performance audit (docs/18 section 5)', () => {
+describe('performance audit ', () => {
   it('has no transition:all shortcuts in any stylesheet', () => {
     expect(sheets.length).toBeGreaterThan(0);
     for (const [name, css] of sheets) {

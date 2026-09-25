@@ -1,4 +1,4 @@
-// @nightfleet/ai - referee-narrator (docs/06-INTELLIGENT-LAYER.md §3).
+// @nightfleet/ai - referee-narrator.
 // Turns invisible ZK into a visible story: one plain-English line per public
 // event saying what was proven and what stayed hidden.
 //

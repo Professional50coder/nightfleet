@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 /**
- * Scroll-reveal (docs/18 section 4 kit: scroll-reveal). Attach the returned
+ * Scroll-reveal. Attach the returned
  * ref to an element that also carries the `reveal` class; it gains
  * `is-revealed` the first time it scrolls into view, then is left alone.
  *

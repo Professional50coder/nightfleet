@@ -1,4 +1,4 @@
-// @nightfleet/ai - deterministic AI opponent (docs/06-INTELLIGENT-LAYER.md §2).
+// @nightfleet/ai - deterministic AI opponent.
 // Pure engine: seeded, no LLM, no I/O. The opponent plays the real contract
 // through api/ (see game-player.js); this module only decides shots.
 //

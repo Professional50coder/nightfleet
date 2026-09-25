@@ -17,7 +17,7 @@ const CIRCUIT_LABEL = {
  * list could be used to reconstruct a board that was not fired at, which is the
  * point: this is exactly the audit trail a spectator gets.
  *
- * docs/18 section 3: the timeline under the list replays the match. Scrubbing
+ * The timeline under the list replays the match. Scrubbing
  * left rewinds the public record to that moment; the row that just became the
  * latest one pulses once so the "playhead" is visible.
  */

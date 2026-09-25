@@ -141,7 +141,7 @@ src/
 test/                  placement · driver · fog-of-war · components
 ```
 
-### Deviations from `docs/11-FRONTEND-SPEC.md`
+### Design decisions
 
 Worth knowing, all deliberate:
 
@@ -149,11 +149,11 @@ Worth knowing, all deliberate:
   `shared/` is consumed by relative import; mixing a TS build in for one package added setup
   without adding safety here. Types are documented in JSDoc on the driver interface.
 - **Hand-written CSS, not Tailwind + shadcn.** The palette, mono-for-everything-ID-shaped rule
-  and hairline depth from `docs/11` section 6 are implemented as CSS custom properties in
+  and hairline depth are implemented as CSS custom properties in
   `src/styles/tokens.css`. Porting the LightNote component library is a later step; this keeps
   the dependency list to React + Vite + Vitest.
 - **CSS transitions, not Framer Motion.** Spring easing, hover lift, press compression and
-  reduced-motion support are all in `app.css`. The heavier motion set from `docs/18`
+  reduced-motion support are all in `app.css`. The heavier motion set
   (proof shimmer, hit shatter, confetti) belongs with the driver that actually proves things.
 - **`shared/` and `ai/` are imported by relative path**, exactly as `api/` and `cli/` do.
   `vite.config.js` sets `server.fs.allow` so the dev server can serve them.

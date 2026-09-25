@@ -55,7 +55,7 @@ describe('<Board>', () => {
     expect(screen.getByTestId('cell-enemy-A1')).toHaveFocus();
   });
 
-  it('fires with Enter or Space on the focused enemy cell (docs/05 section 7)', async () => {
+  it('fires with Enter or Space on the focused enemy cell', async () => {
     const onCellActivate = vi.fn();
     render(<Board mode="enemy" marks={emptyMarks()} onCellActivate={onCellActivate} />);
     screen.getByTestId('cell-enemy-B2').focus();
@@ -247,7 +247,7 @@ describe('<App> end to end against the in-browser driver', () => {
 });
 
 
-describe('<Hud> answer-pipeline stepper (docs/18 section 3)', () => {
+describe('<Hud> answer-pipeline stepper', () => {
   const state = {
     phase: PHASE.PLAYING,
     turn: SEAT.YOU,
@@ -289,7 +289,7 @@ describe('<Hud> answer-pipeline stepper (docs/18 section 3)', () => {
   });
 });
 
-describe('<Hud> stepper as multi-step loader (docs/18 section 4)', () => {
+describe('<Hud> stepper as multi-step loader', () => {
   const state = {
     phase: PHASE.PLAYING,
     turn: SEAT.YOU,
@@ -347,7 +347,7 @@ describe('<Hud> stepper as multi-step loader (docs/18 section 4)', () => {
   });
 });
 
-describe('<Hud> commitment fingerprint tiles (docs/18 section 3)', () => {
+describe('<Hud> commitment fingerprint tiles', () => {
   const state = {
     phase: PHASE.PLAYING,
     turn: SEAT.YOU,
@@ -401,7 +401,7 @@ describe('<Hud> commitment fingerprint tiles (docs/18 section 3)', () => {
   });
 });
 
-describe('<ShotLog> timeline scrubber (docs/18 section 3)', () => {
+describe('<ShotLog> timeline scrubber', () => {
   const entries = [
     { seq: 0, circuit: 'commitBoard', seat: SEAT.OPPONENT },
     { seq: 1, circuit: 'fire', seat: SEAT.YOU, coord: { x: 0, y: 0 } },
@@ -437,7 +437,7 @@ describe('<ShotLog> timeline scrubber (docs/18 section 3)', () => {
 const tokensCss = readFileSync('src/styles/tokens.css', 'utf8');
 const appCss = readFileSync('src/styles/app.css', 'utf8');
 
-describe('motion tokens (docs/18 section 6)', () => {
+describe('motion tokens', () => {
   it('defines the whole spring language in tokens.css and nowhere else', () => {
     for (const token of ['--spring:', '--spring-pop:', '--spring-soft:']) {
       expect(tokensCss).toContain(token);
@@ -450,7 +450,7 @@ describe('motion tokens (docs/18 section 6)', () => {
   });
 });
 
-describe('<EmptyState> empty-state kit item (docs/18 section 4)', () => {
+describe('<EmptyState> empty-state kit item', () => {
   it('renders glyph, title, and hint with the glyph hidden from assistive tech', () => {
     const { container } = render(<EmptyState title="Nothing here" hint="It will show up later." />);
     expect(screen.getByText('Nothing here')).toBeInTheDocument();
@@ -465,7 +465,7 @@ describe('<EmptyState> empty-state kit item (docs/18 section 4)', () => {
   });
 });
 
-describe('<Result> win moment (docs/18 section 2)', () => {
+describe('<Result> win moment', () => {
   const base = { winner: SEAT.YOU, revealed: false };
 
   it('plays a confetti burst on a win, hidden from assistive tech', () => {
@@ -494,7 +494,7 @@ describe('<Result> win moment (docs/18 section 2)', () => {
   });
 });
 
-describe('<App> ambient fog scene (docs/18 section 3)', () => {
+describe('<App> ambient fog scene', () => {
   it('layers the fog behind the content, hidden from assistive tech', () => {
     const { container } = render(<App />);
     const fog = container.querySelector('.app__fog');
@@ -503,7 +503,7 @@ describe('<App> ambient fog scene (docs/18 section 3)', () => {
   });
 });
 
-describe('<Battle> hit feedback (docs/18 section 2)', () => {
+describe('<Battle> hit feedback', () => {
   const baseState = {
     phase: PHASE.PLAYING,
     turn: SEAT.YOU,
@@ -538,7 +538,7 @@ describe('<Battle> hit feedback (docs/18 section 2)', () => {
   });
 });
 
-describe('<MagneticButton> magnetic primary CTAs (docs/18 section 1)', () => {
+describe('<MagneticButton> magnetic primary CTAs', () => {
   const stubMedia = ({ finePointer = true, reducedMotion = false } = {}) => {
     vi.stubGlobal('matchMedia', (query) => ({
       matches:
@@ -599,7 +599,7 @@ describe('<MagneticButton> magnetic primary CTAs (docs/18 section 1)', () => {
   });
 });
 
-describe('<Inspector> public/private card (docs/18 section 3)', () => {
+describe('<Inspector> public/private card', () => {
   const state = {
     phase: PHASE.PLAYING,
     turn: SEAT.YOU,
@@ -645,7 +645,7 @@ describe('<Inspector> public/private card (docs/18 section 3)', () => {
   });
 });
 
-describe('glow panels (docs/18 section 4 kit: glowing-effect)', () => {
+describe('glow panels (glowing-effect)', () => {
   const stubMedia = ({ finePointer = true, reducedMotion = false } = {}) => {
     vi.stubGlobal('matchMedia', (query) => ({
       matches:
@@ -722,7 +722,7 @@ describe('glow panels (docs/18 section 4 kit: glowing-effect)', () => {
   });
 });
 
-describe('ambient grain overlay (docs/18 sections 3+4 kit: noise-background)', () => {
+describe('ambient grain overlay (noise-background)', () => {
   it('layers static film grain over the scene without ever taking a click', () => {
     expect(appCss).toContain('body::after');
     expect(appCss).toContain('feTurbulence');
@@ -733,7 +733,7 @@ describe('ambient grain overlay (docs/18 sections 3+4 kit: noise-background)', (
   });
 });
 
-describe('scroll-reveal (docs/18 section 4 kit: scroll-reveal)', () => {
+describe('scroll-reveal', () => {
   const drivers = [
     { id: 'local', name: 'Local AI', available: true, summary: 'runs in this tab' },
   ];
@@ -759,7 +759,7 @@ describe('scroll-reveal (docs/18 section 4 kit: scroll-reveal)', () => {
   });
 });
 
-describe('wobble cards (docs/18 section 4 kit: wobble-card)', () => {
+describe('wobble cards', () => {
   const drivers = [
     { id: 'local', name: 'Local AI', available: true, summary: 'runs in this tab' },
   ];
@@ -828,7 +828,7 @@ describe('wobble cards (docs/18 section 4 kit: wobble-card)', () => {
   });
 });
 
-describe('optimistic busy state (docs/18 section 5)', () => {
+describe('optimistic busy state', () => {
   const drivers = [
     { id: 'local', name: 'Local AI', available: true, summary: 'runs in this tab' },
   ];

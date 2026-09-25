@@ -18,8 +18,8 @@ function Meter({ label, value, total }) {
 
 
 /**
- * Live status stepper for the answer pipeline (docs/18 section 3), rendered
- * as the multi-step loader from the docs/18 section 4 kit: steps check off in
+ * Live status stepper for the answer pipeline, rendered
+ * as a multi-step loader: steps check off in
  * order while the driver works; when it settles, a short confirmation pulse. The wording follows the driver: a proof-backed driver
  * talks about proofs and the ledger, the local driver does not - claiming a
  * proof that was never generated would be a lie, not polish.
@@ -38,7 +38,7 @@ function Stepper({ busy, provesMoves }) {
       wasBusy.current = true;
       setSettled(false);
       setActive(0);
-      // Multi-step loader (docs/18 section 4): steps check off in order while
+      // Multi-step loader: steps check off in order while
       // the driver works, and the last one stays current until it finishes -
       // the loader never claims a step the driver has not reported.
       const timer = setInterval(() => {

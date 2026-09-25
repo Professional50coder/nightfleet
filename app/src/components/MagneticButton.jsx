@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 /**
- * Magnetic primary button (docs/18 section 1: "magnetic buttons" micro-feedback).
+ * Magnetic primary button ("magnetic buttons" micro-feedback).
  *
  * The surface leans a few px toward the pointer and springs back on leave.
  * Fine pointers with motion allowed only; the movement rides on the shared

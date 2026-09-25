@@ -3,7 +3,7 @@ import { Hash } from './Hash.jsx';
 import { useGlow } from './Glow.jsx';
 
 /**
- * Proof inspector (docs/18 section 3): an expandable card that splits every
+ * Proof inspector: an expandable card that splits every
  * game into what went in (public) and what stayed private. The toggle between
  * the two panes carries a sliding-thumb animation; panes fade in with the
  * shared `rise` keyframes.

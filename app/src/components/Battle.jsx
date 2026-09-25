@@ -34,7 +34,7 @@ export function Battle({
   const yourTurn = state.phase === PHASE.PLAYING && state.turn === SEAT.YOU && !busy;
   const last = state.lastShot;
   // The cell the latest shot landed on, per side, so that board can pulse it
-  // once. Micro-feedback on every answer is docs/18 section 2, not decoration.
+  // once. Micro-feedback on every answer is core feedback, not decoration.
   const freshEnemy = last && last.seat === SEAT.YOU ? coordinateToIndex(last.coord) : null;
   const freshMine = last && last.seat === SEAT.OPPONENT ? coordinateToIndex(last.coord) : null;
   const playing = state.phase === PHASE.PLAYING && !state.winner;
@@ -70,7 +70,7 @@ export function Battle({
           rippleIndex={ripple}
           onCellActivate={(index, coord) => {
             if (state.opponent.marks[index] !== MARK.UNKNOWN) return;
-            setRipple(index); // docs/18 section 2: fire ripples from the clicked cell
+            setRipple(index); // fire ripples from the clicked cell
             onFire(coord);
           }}
         />
@@ -93,7 +93,7 @@ export function Battle({
       </div>
 
       {last && last.result === 'hit' ? (
-        // docs/18 section 2: a hit flashes the screen edge. Pointer-inert,
+        // A hit flashes the screen edge. Pointer-inert,
         // opacity-only, keyed per shot so each fresh hit replays it.
         <div
           key={`${last.seat}-${last.coord.x}-${last.coord.y}`}

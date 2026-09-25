@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 /**
- * Wobble card (docs/18 section 4 kit: wobble-card, restyled with perfekt
+ * Wobble card (restyled with perfekt
  * tokens and stripped of next/* for Vite). The card leans a few pixels
  * toward the pointer while hovered and springs home on leave. Transform is
  * the only property that ever moves, so layout, reveal entrances, and clicks

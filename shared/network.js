@@ -4,7 +4,7 @@
 // access at import time: importing this module is always safe (the deploy CLI
 // imports it before it knows whether Docker or a wallet exist).
 //
-// Values come from docs/07-BLOCKCHAIN-INTEGRATION.md section 5 and docs/02-SETUP.md,
+// Values come from the Midnight Preprod network configuration,
 // and every one of them is overridable by an environment variable so the same
 // code drives midnight-local-dev, Preprod, and CI.
 //
@@ -24,19 +24,19 @@ export class NetworkConfigError extends Error {
   }
 }
 
-/** Networks this project deploys to. Mainnet is explicitly out of scope (docs/PLAN.md section 4). */
+/** Networks this project deploys to. Mainnet is explicitly out of scope. */
 export const NETWORK_NAMES = Object.freeze(['local', 'preprod']);
 
 /** Preprod is the target of the deploy path; `local` is the midnight-local-dev stack. */
 export const DEFAULT_NETWORK = 'preprod';
 
-/** The proof server is local Docker on every network (docs/07 section 5). */
+/** The proof server is local Docker on every network. */
 export const DEFAULT_PROOF_SERVER_URL = 'http://localhost:6300';
 
 /**
  * Version pins for the whole Midnight stack. The Compact half is owned by
  * TOOLCHAIN in ./index.js (single source of truth); the rest is the known-good
- * support-matrix line from docs/07 section 2.
+ * support-matrix line from the Midnight docs:
  * https://docs.midnight.network/relnotes/support-matrix
  */
 export const PINNED_VERSIONS = Object.freeze({
@@ -44,7 +44,7 @@ export const PINNED_VERSIONS = Object.freeze({
   midnightJs: '4.1.1',
   ledgerV8: '8.1.0',
   proofServerImage: 'midnightnetwork/proof-server',
-  // docs/02-SETUP.md: "Pin the proof-server Docker tag to your ledger/prover
+  // Pin the proof-server Docker tag to your ledger/prover
   // version." Not yet confirmed against a running server - deliberately null so
   // the deploy CLI warns instead of silently implying :latest is fine.
   proofServerTag: null,
@@ -67,7 +67,7 @@ export const ENV_VARS = Object.freeze({
 /** Secret. Read at the point of use, never stored in a config object, never logged. */
 export const WALLET_SEED_ENV = 'NIGHTFLEET_WALLET_SEED';
 
-/** Endpoint presets (docs/07 section 5). Schemes added; the doc lists bare hosts. */
+/** Endpoint presets. Schemes added; the docs list bare hosts. */
 export const NETWORK_PRESETS = Object.freeze({
   local: Object.freeze({
     name: 'local',
@@ -124,7 +124,7 @@ export function collectConfigProblems(config) {
   if (typeof config.networkId !== 'string' || config.networkId.trim() === '') {
     problems.push(`networkId must be a non-empty string (set ${ENV_VARS.networkId} to override)`);
   } else if (/^main(net)?$/i.test(config.networkId.trim())) {
-    // docs/PLAN.md section 4: mainnet and real-money wagering are out of scope.
+    // mainnet and real-money wagering are out of scope.
     problems.push('networkId "mainnet" is out of scope for NightFleet; Preprod only');
   }
 

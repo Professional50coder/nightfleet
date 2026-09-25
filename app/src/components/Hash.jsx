@@ -1,6 +1,6 @@
 /**
- * Shared presentation for commitment hashes (docs/11 section 6: mono for every
- * hash/address; docs/18 section 3: generative fingerprint tiles). Used by the
+ * Shared presentation for commitment hashes (mono for every
+ * hash/address; plus generative fingerprint tiles). Used by the
  * HUD and the proof inspector so the treatment never drifts between surfaces.
  */
 
@@ -11,7 +11,7 @@ export function Hash({ value }) {
 }
 
 /**
- * Generative fingerprint tile for a commitment hash (docs/18 section 3): a
+ * Generative fingerprint tile for a commitment hash: a
  * 5x5 mirrored grid derived from the hash, so each commitment is visibly
  * distinct at a glance. Deterministic - same hash, same tile. The cells
  * carry a stagger index so the tile cascades in when it is revealed.

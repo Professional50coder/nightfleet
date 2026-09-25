@@ -1,4 +1,4 @@
-// Narrator tests (docs/06 §3): template lines, cache, LLM fallback, privacy.
+// Narrator tests: template lines, cache, LLM fallback, privacy.
 import { describe, it, expect, vi } from 'vitest';
 import { createNarrator, NARRATOR_SYSTEM_PROMPT } from '../narrator.js';
 

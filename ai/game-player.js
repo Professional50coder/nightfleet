@@ -1,4 +1,4 @@
-// @nightfleet/ai - GamePlayer: an AI seat at a real LocalGame (docs/06 §2).
+// @nightfleet/ai - GamePlayer: an AI seat at a real LocalGame.
 // The AI holds its own board + salt, commits like a human, and fires/reports
 // through the same api/ path - no fake mode.
 import { randomFleet } from '../shared/index.js';

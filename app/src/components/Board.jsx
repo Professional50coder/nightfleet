@@ -26,13 +26,13 @@ function describeCell({ mark, ship, revealedShip }) {
  *   marks?: number[],
  *   preview?: number[],
  *   previewInvalid?: boolean,
- *   settledCells?: number[], // just-placed cells - settle spring (docs/18 section 1)
+ *   settledCells?: number[], // just-placed cells - settle spring
  *   disabled?: boolean,
  *   caption?: string,
  *   onCellActivate?: (index: number, coord: {x:number,y:number}) => void,
  *   onCellHover?: (index: number|null, coord: {x:number,y:number}|null) => void,
- *   freshIndex?: number|null,  // cell that just changed - pulses once (docs/18 section 2)
- *   rippleIndex?: number|null, // cell just fired at - ripples until the answer lands (docs/18 section 2)
+ *   freshIndex?: number|null,  // cell that just changed - pulses once
+ *   rippleIndex?: number|null, // cell just fired at - ripples until the answer lands
  *   active?: boolean,          // this board is where the current turn happens
  * }} props
  */

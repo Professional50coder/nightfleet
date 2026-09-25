@@ -1,4 +1,4 @@
-// docs/15-SECURITY-AND-PRIVACY.md: wallet material is radioactive. These tests
+// Wallet material is radioactive. These tests
 // pin the two rules that matter - a display string can never reconstruct the
 // address, and nothing secret-shaped survives a trip to a logger.
 import { describe, it, expect } from 'vitest';

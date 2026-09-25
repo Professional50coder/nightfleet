@@ -9,7 +9,7 @@ import { MagneticButton } from './MagneticButton.jsx';
  * the product feature, not a limitation: the layout stayed hidden for the whole
  * match and is opened afterwards only so the loser's honesty can be checked.
  *
- * docs/18 §2 win moment: on a win the card plays a pure-CSS confetti burst and
+ * Win moment: on a win the card plays a pure-CSS confetti burst and
  * the headline springs in. The pieces are deterministic (positions derive from
  * the index) so the render is stable in tests, aria-hidden so the role="status"
  * announcement stays the plain result text, and the whole layer is removed

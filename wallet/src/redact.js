@@ -1,6 +1,6 @@
 // @nightfleet/wallet - redaction.
 //
-// docs/15-SECURITY-AND-PRIVACY.md: wallet material never reaches the repo, the
+// Security policy: wallet material never reaches the repo, the
 // backend, or a log. This module is the single place that decides what a raw
 // address turns into before anyone outside the connector sees it.
 

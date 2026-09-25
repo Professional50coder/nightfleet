@@ -17,7 +17,7 @@ export const TOOLCHAIN = Object.freeze({
   onchainRuntimeV3: '^3.0.0',
 });
 
-// Local dev stack endpoints (docs/02-SETUP.md). Node/indexer ports are set by
+// Local dev stack endpoints. Node/indexer ports are set by
 // midnight-local-dev and land here when M0 wires the real stack.
 export const NETWORKS = Object.freeze({
   local: { proofServer: 'http://localhost:6300' },

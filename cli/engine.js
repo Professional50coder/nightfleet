@@ -13,7 +13,7 @@ export class CliGame {
   /** @param {{humanName?: string, rng?: () => number, narrator?: object}} opts */
   constructor({ humanName = 'you', rng = Math.random, narrator = createNarrator() } = {}) {
     this.rng = rng;
-    this.narrator = narrator;         // referee voice (docs/06 section 3); template-based by default
+    this.narrator = narrator;         // referee voice; template-based by default
     this.narrationLog = [];           // lines since last drainNarration()
     this.game = LocalGame.create();
     this.human = this.game.addPlayer(humanName);

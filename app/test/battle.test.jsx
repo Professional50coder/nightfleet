@@ -1,6 +1,6 @@
-// The battle screen and the end-of-game card, tested directly (docs/14
+// The battle screen and the end-of-game card, tested directly (core game
 // section 1: the frontend layer covers components and state transitions, and
-// docs/14 section 5 asks for the core game flow plus error states).
+// flow plus error states).
 //
 // The two things worth pinning here are the fog rule and the error surface:
 // the enemy board can only ever draw what the marks array says, because the
@@ -157,7 +157,7 @@ describe('<Battle> turn gating', () => {
   });
 });
 
-describe('<Battle> last-shot line and hit feedback (docs/18 section 2)', () => {
+describe('<Battle> last-shot line and hit feedback', () => {
   it('prompts for a target before any shot', () => {
     renderBattle(makeState());
     expect(screen.getByText(/pick a cell on the enemy grid to fire/i)).toBeInTheDocument();
@@ -233,7 +233,7 @@ describe('<Result>', () => {
     expect(container).toBeEmptyDOMElement();
   });
 });
-describe('<Battle> fire ripple (docs/18 section 2)', () => {
+describe('<Battle> fire ripple', () => {
   it('ripples the fired cell while the answer is in flight', async () => {
     const onFire = vi.fn();
     renderBattle(makeState(), { onFire });

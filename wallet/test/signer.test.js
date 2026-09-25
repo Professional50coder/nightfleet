@@ -88,7 +88,7 @@ describe('getSigner()', () => {
     expect(sig).toMatchObject({ signature: 'sig-mock', verifyingKey: 'vk-mock' });
   });
 
-  it('hands back the wallet proving provider (docs/07 HTTP-proof fallback)', async () => {
+  it('hands back the wallet proving provider (HTTP-proof fallback)', async () => {
     const c = connect(makeWindow(makeLaceV4()));
     await c.connect();
     const pp = await c.getSigner().getProvingProvider({ getZKIR: async () => new Uint8Array() });

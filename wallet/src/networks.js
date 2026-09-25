@@ -1,6 +1,6 @@
 // @nightfleet/wallet - network identity and the Preprod guard.
 //
-// docs/PLAN.md section 4: Preprod only. Never mainnet, never real money.
+// Preprod only. Never mainnet, never real money.
 // A wrong-network *silent* failure is the classic demo-killer, so everything
 // here fails closed: if we cannot prove the wallet is on the expected network,
 // we refuse to report `connected`.
@@ -8,7 +8,7 @@
 // SPEC-DERIVED (not runtime-verified): the literal network-id strings.
 // @midnight-ntwrk/midnight-js-network-id 4.1.1 types `NetworkId` as a bare
 // `string` - there is no enum to check against - and the connector README only
-// documents 'mainnet' by name. 'preprod' comes from docs/07-BLOCKCHAIN-
+// documents 'mainnet' by name. 'preprod' comes from the Midnight
 // INTEGRATION.md section 5. If Lace reports something else on Preprod, change
 // `expectedNetworkId` at the call site; nothing else needs to move.
 
@@ -49,7 +49,7 @@ export function isPreprodId(id) {
 export function assertAllowedTarget(id) {
   const c = canonical(id);
   if (isMainnetId(c)) {
-    throw new Error('NightFleet refuses to target mainnet (docs/PLAN.md: Preprod only)');
+    throw new Error('NightFleet refuses to target mainnet (Preprod only)');
   }
   if (!c) throw new Error('expectedNetworkId must be a non-empty string');
   return c;

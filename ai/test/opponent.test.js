@@ -1,4 +1,4 @@
-// AI opponent tests (docs/06 §2): determinism, legal shots, hunt/target
+// AI opponent tests: determinism, legal shots, hunt/target
 // behavior, density mode, and a full game through the real LocalGame api.
 import { describe, it, expect } from 'vitest';
 import { Opponent, opponentFleet, DIFFICULTIES } from '../opponent.js';

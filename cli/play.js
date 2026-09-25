@@ -8,7 +8,7 @@ const demo = process.argv.includes('--demo');
 const cli = new CliGame({ rng: demo ? seedRng(42) : Math.random });
 cli.placeRandom();
 
-// referee-narrator lines (docs/06): what each move proved, what stayed hidden
+// referee-narrator lines what each move proved, what stayed hidden
 const say = () => cli.drainNarration().forEach((l) => console.log(`  ${l}`));
 
 console.log('NightFleet local game - your fleet is committed (ZK), the AI fleet is hidden.');

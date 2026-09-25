@@ -26,7 +26,7 @@ and stays local - the same privacy model as the contract.
 
 `deploy.js` deploys the compiled contract to a Midnight network and records the
 **contract address** and **deploy transaction** - the judges' proof of a real
-deployment (docs/07 section 4).
+deployment.
 
 ```sh
 node deploy.js --dry-run                        # validate everything, deploy nothing
@@ -70,7 +70,7 @@ file.
 
 ### Environment
 
-Every endpoint has a default (docs/07 section 5) and an override. Config comes
+Every endpoint has a default and an override. Config comes
 from the environment only - nothing is hardcoded into a committed file.
 
 | variable | overrides |
@@ -103,7 +103,7 @@ A real Preprod deploy cannot run yet. The code path is written end to end, but
 three things are on the user, not the code:
 
 1. **Docker Desktop** with WSL integration, running the proof server on
-   `localhost:6300` (docs/02-SETUP.md step 3). The image tag still needs pinning
+   `localhost:6300`. The image tag still needs pinning
    to the ledger/prover version - the dry run flags this as a blocker.
 2. **A funded wallet on Preprod** - fund it from
    https://midnight-tmnight-preprod.nethermind.dev/ and export the hex master
@@ -115,7 +115,7 @@ three things are on the user, not the code:
 `contract/managed/` must also exist (`cd ../contract && npm run compile`); it is
 gitignored, so it is absent on a fresh clone.
 
-> **The wallet package in docs/07 is wrong.** `@midnight-ntwrk/wallet` is not
+> **Heads-up on the wallet package.** `@midnight-ntwrk/wallet` is not
 > the wallet for this midnight-js line: its shipping major (5.0.0) is built on
 > `@midnight-ntwrk/zswap@4` and its `balanceTransaction` cannot take the
 > ledger-v8 `UnboundTransaction` that midnight-js 4.1.1's `WalletProvider`

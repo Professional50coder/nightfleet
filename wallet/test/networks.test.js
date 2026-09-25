@@ -1,4 +1,4 @@
-// The Preprod guard. docs/PLAN.md section 4: Preprod only, never mainnet.
+// The Preprod guard: Preprod only, never mainnet.
 // Every ambiguous case must fail closed - a silent wrong-network connection is
 // the failure mode this whole module exists to prevent.
 import { describe, it, expect } from 'vitest';

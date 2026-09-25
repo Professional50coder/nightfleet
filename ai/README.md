@@ -1,10 +1,10 @@
 # nightfleet/ai
 
-The intelligent layer (docs/06-INTELLIGENT-LAYER.md): deterministic AI opponent
+The intelligent layer: deterministic AI opponent
 and referee-narrator. Pure JS, seeded, no LLM in the move path - the model is
 reserved for narration, so a flaky API can never break gameplay.
 
-## Opponent (docs/06 §2)
+## Opponent
 
 - `new Opponent({ difficulty, seed })` - shot engine. `nextShot()` returns the
   next `{x, y}`; `recordShot(coord, 'hit'|'miss')` feeds the contract's answer
@@ -21,7 +21,7 @@ reserved for narration, so a flaky API can never break gameplay.
 The contract reports only hit/miss (no sink events), so targeting treats every
 hit as unresolved until its line can no longer extend.
 
-## Narrator (docs/06 §3)
+## Narrator
 
 - `createNarrator({ llm?, deadlineMs? })` - one plain-English line per public
   event saying what was proven and what stayed hidden.

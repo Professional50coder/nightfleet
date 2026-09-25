@@ -85,7 +85,7 @@ kbd {
 
 /* ---- primitives --------------------------------------------------------- */
 
-/* docs/18 sections 1+6: panels are the frosted-glass surfaces (overlays and
+/* panels are the frosted-glass surfaces (overlays and
    HUD-adjacent cards); the boards stay crisp and un-blurred. One glass recipe
    everywhere - same token, same blur, Safari prefix included. */
 .panel {
@@ -130,7 +130,7 @@ kbd {
 .btn--wide { width: 100%; margin-top: 4px; }
 .btn--tiny { padding: 3px 9px; font-size: 11.5px; border-radius: var(--r-sm); }
 
-/* docs/18 section 1: magnetic primary CTAs lean toward the pointer a few px
+/* magnetic primary CTAs lean toward the pointer a few px
    (JS sets --mx/--my, capped) and spring back with a soft overshoot on leave.
    Transform-only, so it composes with the hover lift and press compression
    above. Reduced-motion flattens the return spring via the global duration
@@ -431,10 +431,10 @@ kbd {
   .panel { padding: 14px; }
 }
 
-/* ---- micro-feedback (docs/18 sections 1-2) ---------------------------------
+/* ---- micro-feedback ---------------------------------
    Every answered shot pulses the cell it landed on; the board where the current
    turn happens carries a soft highlight; pressable cells compress under the
-   pointer. Transform/opacity only (docs/18 section 5); the tokens'
+   pointer. Transform/opacity only; the tokens'
    prefers-reduced-motion block already flattens all of this. */
 
 .cell--fresh.cell--hit {
@@ -458,9 +458,9 @@ kbd {
   100% { transform: scale(1); box-shadow: 0 0 0 12px rgba(90, 108, 134, 0), 0 0 0 22px rgba(90, 108, 134, 0); }
 }
 
-/* docs/18 section 2 - HIT: screen-edge flash. A pointer-inert overlay whose
+/* HIT: screen-edge flash. A pointer-inert overlay whose
    inset glow flares and fades; opacity only is animated, so it stays in the
-   transform/opacity budget (docs/18 section 5). Reduced-motion removes it. */
+   transform/opacity budget. Reduced-motion removes it. */
 .battle__flash {
   position: absolute;
   inset: -8px;
@@ -477,9 +477,9 @@ kbd {
   100% { opacity: 0; }
 }
 
-/* docs/18 section 2 - fire ripple: an expanding proof-cyan ring on the cell
+/* fire ripple: an expanding proof-cyan ring on the cell
    just fired at, repeating until the answer lands (Battle removes it then).
-   Box-shadow only, so it never touches layout (docs/18 section 5). Under
+   Box-shadow only, so it never touches layout. Under
    reduced-motion an endlessly looping ring would strobe, so it is removed
    entirely rather than flattened. */
 .cell__ripple {
@@ -499,7 +499,7 @@ kbd {
   .cell__ripple { display: none; }
 }
 
-/* ---- docs/18 section 3: proof inspector ("what's real / what's hidden") ---
+/* ---- proof inspector ("what's real / what's hidden") ---
    Expandable card with an animated public/private toggle. The thumb slides on
    transform only; panes reuse the shared `rise` keyframes, so reduced-motion
    flattens everything through the token overrides. */
@@ -570,7 +570,7 @@ kbd {
   transition: border-color var(--base) var(--spring), box-shadow var(--base) var(--spring);
 }
 
-/* ---- docs/18 section 3: answer-pipeline stepper in the HUD --------------- */
+/* ---- answer-pipeline stepper in the HUD ---- */
 
 .stepper {
   display: inline-flex;
@@ -579,7 +579,7 @@ kbd {
   margin-left: 12px;
 }
 
-/* docs/18 section 4 kit: the stepper is the multi-step loader - pending
+/* the stepper is the multi-step loader - pending
    steps stay dim, the current one pulses proof-bright, finished ones check
    off. Order and wording come from the component, never from the css. */
 .stepper__step {
@@ -666,7 +666,7 @@ kbd {
   .battle__flash { opacity: 0; }
 }
 
-/* ---- docs/18 section 3: commitment fingerprint identicon ----------------- */
+/* ---- commitment fingerprint identicon ---- */
 
 .identicon {
   display: inline-grid;
@@ -692,7 +692,7 @@ kbd {
   .identicon, .identicon i { animation: none; }
 }
 
-/* ---- docs/18 section 4: empty-state kit item ----------------------------- */
+/* ---- empty-state kit item ---- */
 
 .empty-state {
   display: grid;
@@ -711,7 +711,7 @@ kbd {
   background: rgba(79, 214, 224, calc(0.35 + var(--v, 0.5) * 0.65));
 }
 
-/* ---- docs/18 section 3: public-log timeline scrubber --------------------- */
+/* ---- public-log timeline scrubber ---- */
 
 .log__timeline {
   padding: 2px 2px 8px;
@@ -750,7 +750,7 @@ kbd {
   animation: nf-settled-pop var(--base) var(--spring);
 }
 
-/* ---- win confetti (docs/18 §2) -------------------------------------------
+/* ---- win confetti -------------------------------------------
    Pure-CSS burst on the win card: 36 deterministic pieces rain through the
    card while the headline springs in. Transform/opacity only; aria-hidden;
    removed entirely under prefers-reduced-motion. */
@@ -781,7 +781,7 @@ kbd {
   .result--win h2 { animation: none; }
 }
 
-/* ---- ambient fog scene (docs/18 §3) ----------------------------------------
+/* ---- ambient fog scene ----------------------------------------
    Three slow-drifting blurred blobs behind the content, over the static body
    gradients, under the grain. Transform/opacity only (§5); removed under
    prefers-reduced-motion. */
@@ -829,9 +829,9 @@ kbd {
   .app__fog i { animation: none; }
 }
 
-/* ---- setup placement feedback (docs/18 section 1) ------------------------ */
+/* ---- setup placement feedback ------------------------ */
 /* A dropped ship settles onto the grid with a spring; tray ships press like
-   physical buttons. transform/opacity only (docs/18 section 5); flattened
+   physical buttons. transform/opacity only; flattened
    under prefers-reduced-motion. */
 .cell--settled { animation: nf-place-settle var(--base) var(--spring); }
 @keyframes nf-place-settle {
@@ -846,7 +846,7 @@ kbd {
   .tray__ship:active { transform: none; }
 }
 
-/* glowing-effect kit item (docs/18 section 4): a soft proof-colored light
+/* glowing-effect kit item : a soft proof-colored light
    follows the pointer across glow panels and fades out on leave. The layer is
    opacity-only and never takes clicks; the JS side never engages on coarse
    pointers or under reduced motion, so those surfaces stay perfectly still. */
@@ -862,7 +862,7 @@ kbd {
   transition: opacity var(--base) var(--spring);
 }
 
-/* ---- docs/18 sections 3+4: ambient grain (noise-background kit item) ------
+/* ---- ambient grain (noise-background) ------
    A static film-grain layer over the whole scene: SVG turbulence tiles at a
    whisper of opacity in overlay blend, so the dark surfaces read as shot on
    film rather than flat digital black. Fixed and pointer-events:none - it
@@ -879,9 +879,9 @@ body::after {
   opacity: 0.04;
 }
 
-/* ---- docs/18 section 4 kit: scroll-reveal ---------------------------------
+/* ---- scroll-reveal ---------------------------------
    Panels rise into view once as they enter the viewport, then stay put.
-   Transform/opacity only (docs/18 section 5), eased by the shared spring so
+   Transform/opacity only , eased by the shared spring so
    the motion speaks the same language as everything else. Reduced-motion and
    no-IntersectionObserver environments start revealed (see useReveal). */
 .reveal {
@@ -903,10 +903,10 @@ body::after {
   }
 }
 
-/* ---- docs/18 section 4 kit: wobble-card ------------------------------------
+/* ---- wobble-card ------------------------------------
    Landing cards lean a few pixels toward the pointer while hovered and
    spring home on leave. Transform is the only property that ever moves
-   (docs/18 section 5), eased by the shared spring. The JS side engages only
+   , eased by the shared spring. The JS side engages only
    for fine pointers with motion allowed, so touch and reduced-motion
    surfaces stay perfectly still. */
 .wobble-card {
@@ -920,7 +920,7 @@ body::after {
   }
 }
 
-/* ---- docs/18 section 5: optimistic busy state ------------------------------
+/* ---- optimistic busy state ------------------------------
    The Play button never goes silently dead while the driver sets a game up:
    it says what is happening with a live dot and honest wording. Color and
    opacity only; the pulse rides the shared reduced-motion flattening in

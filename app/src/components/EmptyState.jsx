@@ -1,5 +1,5 @@
 /**
- * Empty state (docs/18 section 4 polish kit): one calm treatment for every
+ * Empty state: one calm treatment for every
  * "nothing here yet" surface - a glyph, a title, and a one-line hint of what
  * will appear. The glyph is decorative; the section around the empty state
  * owns the accessible name.

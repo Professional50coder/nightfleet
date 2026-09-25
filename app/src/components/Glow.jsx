@@ -1,7 +1,7 @@
 import { useCallback, useRef } from 'react';
 
 /**
- * Pointer-tracked glow (docs/18 section 4 kit: glowing-effect). A soft
+ * Pointer-tracked glow. A soft
  * proof-colored light follows the pointer across a panel and fades out on
  * leave. Fine pointers with motion allowed only; the glow layer is
  * opacity-only and pointer-events:none, so layout and clicks never change.

@@ -3,7 +3,7 @@
 // Everything above this file speaks `NormalizedSession` and never touches the
 // injected object again. When Lace changes, this is the only file that moves.
 //
-// The surface deliberately stops at what docs/07 + docs/11 need: identity for
+// The surface deliberately stops at what the app needs: identity for
 // display, network for verification, and a signing/submit path. Balances, dust,
 // and transaction history are reachable on the raw connector and are NOT
 // forwarded - the game has no business reading them.
@@ -160,7 +160,7 @@ function makeV4Session(api, { timeoutMs, addressKind }) {
       ? (tx) => call(() => api.submitTransaction(tx), 'submitTransaction()')
       : unsupported('submitTransaction', 'v4'),
 
-    // The Lace-side proof provider: docs/07 section 2 wants this as the
+    // The Lace-side proof provider, used as the
     // fallback when the local HTTP proof server errors.
     getProvingProvider: capabilities.provingProvider
       ? (kmp) => call(() => api.getProvingProvider(kmp), 'getProvingProvider()')

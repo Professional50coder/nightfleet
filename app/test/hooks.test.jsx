@@ -1,4 +1,4 @@
-// The two app hooks, tested directly (docs/14 section 1: frontend layer covers
+// The two app hooks, tested directly. The frontend layer covers
 // state transitions and error states, not just rendered markup).
 //
 // useGame is the only place the UI touches a driver: these tests pin the
@@ -129,7 +129,7 @@ describe('useGame', () => {
   });
 });
 
-describe('useReveal (docs/18 section 4 kit: scroll-reveal)', () => {
+describe('useReveal', () => {
   function RevealProbe() {
     const ref = useReveal();
     return <div ref={ref} className="reveal">probe</div>;

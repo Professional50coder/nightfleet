@@ -2,7 +2,7 @@
  * NightFleet design tokens.
  *
  * Dark, filmic, near-black base with a brass primary and a cyan "proof" glow,
- * per docs/11 section 6 and docs/18. Mono is used for every coordinate, hash
+ * Mono is used for every coordinate, hash
  * and ID - the one typographic rule the whole app obeys.
  *
  * Fonts are system stacks: the app must run with no network (it is local-only),
@@ -45,14 +45,14 @@
   --r-lg: 16px;
   --cell: clamp(30px, 7.4vw, 46px);
 
-/* docs/05 section 8 - large tap targets: on phones wide enough to fit them,
+/* Large tap targets: on phones wide enough to fit them,
    raise the cell floor from 30px to 34px (7.4vw takes over again by ~460px).
    Below 360px the 30px floor stays so the board never overflows. */
 @media (min-width: 360px) {
   :root { --cell: clamp(34px, 7.4vw, 46px); }
 }
 
-  /* motion: one spring language everywhere (docs/18 section 6). --spring is
+  /* motion: one spring language everywhere. --spring is
      the default; --spring-pop adds overshoot for settle-back moments like the
      magnetic buttons; --spring-soft is the slow ease for ambient one-shots
      like confetti. Component css never writes a raw cubic-bezier. */

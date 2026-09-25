@@ -1,5 +1,5 @@
-// The docs/18 polish kit and the landing screen, tested directly (docs/14
-// section 1: components and state transitions).
+// The polish kit and the landing screen, tested directly - components
+// and state transitions.
 //
 // The kit's promise is restraint: every effect is pointer-fine and
 // motion-allowed only, touch and reduced-motion get a perfectly still page,
@@ -45,7 +45,7 @@ function GlowProbe() {
   return <div data-testid="panel" className="glow" {...glow} />;
 }
 
-describe('<WobbleCard> (docs/18 section 4 kit: wobble-card)', () => {
+describe('<WobbleCard>', () => {
   it('leans toward a fine pointer and springs home on leave', () => {
     const { container } = render(<WobbleCard>card</WobbleCard>);
     const card = container.querySelector('.wobble-card');
@@ -72,7 +72,7 @@ describe('<WobbleCard> (docs/18 section 4 kit: wobble-card)', () => {
   });
 });
 
-describe('<MagneticButton> (docs/18 section 1 micro-feedback)', () => {
+describe('<MagneticButton>', () => {
   it('pulls a few px toward the pointer, capped, and resets on leave', () => {
     render(<MagneticButton>go</MagneticButton>);
     const btn = screen.getByRole('button', { name: 'go' });
@@ -101,7 +101,7 @@ describe('<MagneticButton> (docs/18 section 1 micro-feedback)', () => {
   });
 });
 
-describe('useGlow (docs/18 section 4 kit: glowing-effect)', () => {
+describe('useGlow', () => {
   it('moves the light with a fine pointer and fades it on leave', () => {
     render(<GlowProbe />);
     const panel = screen.getByTestId('panel');
@@ -125,7 +125,7 @@ describe('useGlow (docs/18 section 4 kit: glowing-effect)', () => {
   });
 });
 
-describe('<Hash> and <Identicon> (docs/11 section 6, docs/18 section 3)', () => {
+describe('<Hash> and <Identicon>', () => {
   it('truncates a commitment in mono and keeps the full value on hover', () => {
     const value = 'abcdef0123456789'.repeat(4);
     const { container } = render(<Hash value={value} />);
@@ -145,7 +145,7 @@ describe('<Hash> and <Identicon> (docs/11 section 6, docs/18 section 3)', () => 
   });
 });
 
-describe('<EmptyState> (docs/18 section 4 polish kit)', () => {
+describe('<EmptyState> ', () => {
   it('renders a decorative glyph, a title, and an optional hint', () => {
     const { container, rerender } = render(<EmptyState title="No shots yet" hint="Fire to begin" />);
     expect(container.querySelector('.empty-state__glyph').getAttribute('aria-hidden')).toBe('true');

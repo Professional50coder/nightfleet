@@ -7,7 +7,7 @@
 // UI can never accept a fleet the contract would reject.
 //
 // Deliberate non-rule: ships are allowed to touch. The deployed circuit is
-// Tier B (cell count + bounds, docs/01 section 5), so adjacency is not a
+// Tier B (cell count + bounds), so adjacency is not a
 // protocol rule and the editor must not invent one - it would let a player
 // build a legal fleet the UI refuses.
 import {

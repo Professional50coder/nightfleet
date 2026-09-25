@@ -1,4 +1,4 @@
-// NightFleet adversarial + happy-path circuit tests (docs/14-TESTING-AND-QA.md).
+// NightFleet adversarial + happy-path circuit tests.
 // Every cheating attempt MUST revert with the contract's assert message.
 import { describe, it, expect } from 'vitest';
 import { Contract, ledger, Phase } from '../managed/contract/index.js';

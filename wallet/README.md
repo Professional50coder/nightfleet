@@ -118,7 +118,7 @@ const wallet = createLaceConnector({
   signData(data, { encoding, keyType }),
   balanceTransaction(tx, { sealed?, payFees? }),   // unsealed by default
   submitTransaction(tx),
-  getProvingProvider(keyMaterialProvider), // the docs/07 §2 proof fallback
+  getProvingProvider(keyMaterialProvider), // the HTTP-proof fallback
 }
 ```
 
@@ -175,7 +175,7 @@ Three things worth calling out:
 - **Wrong network fails closed.** If the wallet will not tell us its network we
   emit `NETWORK_UNVERIFIED` and stay out of `connected`. A silent wrong-network
   connection is the classic demo-killer; guessing is worse than refusing.
-- **Mainnet has its own code and its own copy.** `docs/PLAN.md` §4 is
+- **Mainnet has its own code and its own copy.** Project policy is
   Preprod-only, and `expectedNetworkId: 'mainnet'` throws at construction.
 - **`WALLET_LOCKED` is a heuristic.** The connector API has no "locked" code; we
   match `/lock|unlock/i` in the rejection reason and otherwise report
@@ -189,7 +189,7 @@ returns to `available`; the wallet keeps its own permission record, so a later
 `connect()` may not re-prompt. The UI should say "Disconnect" and not promise
 that access was revoked.
 
-## Privacy rules (docs/15)
+## Privacy rules
 
 1. Raw addresses **never** enter a snapshot, an event, or an error. Only
    `revealAddress()` returns one, and only while connected.
@@ -244,7 +244,7 @@ export function WalletButton({ connector }) {   // create it outside React
 The hook already calls `detect()` on mount and re-detects plus polls on window
 focus — a wallet installed or unlocked in another tab only shows up then.
 
-**Wallet-optional reads (docs/07 §6).** Spectate, replay and vs-AI must work with
+**Wallet-optional reads.** Spectate, replay and vs-AI must work with
 no wallet at all. Nothing in this package runs on import: construct the
 connector, render `unavailable`, and let the rest of the app proceed.
 
@@ -259,7 +259,7 @@ await signer.submitTransaction(balanced.tx);
 const provingProvider = await signer.getProvingProvider(zkConfigProvider);
 ```
 
-Mono font for the address pill and every hash — `docs/11` §6.
+Mono font for the address pill and every hash.
 
 ## Verified vs spec-derived
 
@@ -288,9 +288,9 @@ Being precise about this, because a confident guess here costs a demo.
 each is a one-line change:
 
 1. **The literal string Lace reports for Preprod.** `'preprod'` comes from
-   `docs/07` §5. The connector README only names `'mainnet'`. If Lace reports
+   The connector README only names `'mainnet'`. If Lace reports
    something else, pass `expectedNetworkId`; only `src/networks.js` cares.
-2. **Which connector major a shipping Lace injects.** `docs/07` §6 says
+2. **Which connector major a shipping Lace injects.** The docs say
    `window.midnight.mnLace`. We accept *any* key, rank Lace-looking ones first,
    and drive both majors — but which one a real build exposes is unconfirmed.
 3. **That the 4.x `connect(networkId)` hint changes wallet behaviour.** We pass
@@ -316,8 +316,8 @@ Once Lace is installed on Preprod, in order:
    `detect()` reports `available`.
 2. Check `wallet.apiVersion` against `SUPPORTED_API_MAJORS` (`[4, 3]`).
 3. `connect()` and read `snapshot.networkId` — **this is the string that settles
-   item 1 above.** If it is not `preprod`, set `expectedNetworkId` and note it in
-   `docs/07`.
+   item 1 above.** If it is not `preprod`, set `expectedNetworkId` and note it in the
+   project notes.
 4. Reject the prompt on purpose → expect `USER_REJECTED`.
 5. Lock Lace, retry → check whether `WALLET_LOCKED` or `USER_REJECTED` comes back
    and tighten the heuristic if needed.

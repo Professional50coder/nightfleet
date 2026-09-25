@@ -667,7 +667,7 @@ describe('explainDeployFailure', () => {
     const message = explainDeployFailure(err, config);
     expect(message).toContain('ECONNREFUSED');
     expect(message).toContain('http://ps');
-    expect(message).toContain('docs/02-SETUP.md');
+    expect(message).toContain('README');
   });
 
   it('passes anything else through unchanged rather than inventing a cause', () => {

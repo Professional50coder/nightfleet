@@ -1,7 +1,7 @@
 // @nightfleet/wallet - the connection state machine.
 //
 // Five states, one legal-transition table. The UI renders `status` directly;
-// it never has to reconcile a bag of booleans (docs/18 wallet-button states).
+// it never has to reconcile a bag of booleans.
 //
 //                    detect()                connect()
 //   unavailable ---------------> available -------------> connecting
