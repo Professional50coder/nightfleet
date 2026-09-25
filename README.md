@@ -13,6 +13,9 @@
 
 <p align="center"><img src="screenshots/gameplay.png" width="860" alt="NightFleet gameplay - your waters vs the fog"></p>
 
+https://github.com/user-attachments/assets/b82379a0-cbbf-4d8d-baf8-10c8acb8d377
+
+
 ---
 
 Every Battleship turn asks one player a question only they can answer:
