@@ -8,7 +8,8 @@
 <a href="https://nightfleet.vercel.app">Play the demo</a> ·
 <a href="#section-02--the-disparity">The disparity</a> ·
 <a href="#section-04--the-contract">The contract</a> ·
-<a href="#section-08--run-it">Run it</a>
+<a href="#section-08--run-it">Run it</a> ·
+<a href="ROADMAP.md">Roadmap</a>
 </p>
 
 <p align="center"><img src="screenshots/gameplay.png" width="860" alt="NightFleet gameplay - your waters vs the fog"></p>
@@ -178,6 +179,10 @@ cd app && npm install && npm run dev
 - The browser demo proves the game loop, not the chain: proofs are exercised by
   the contract suites, the UI runs the shared rules engine.
 - Solo vs AI today; two-player on-chain matches follow the Preprod deploy.
+
+## SECTION 10 · ROADMAP
+
+Shipped, in flight, and next - see [ROADMAP.md](ROADMAP.md).
 
 ## License
 
