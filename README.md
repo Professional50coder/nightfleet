@@ -47,9 +47,6 @@ generates a wallet, registers for dust, builds the unproven deploy transaction
 with midnight-js, submits it, and confirms via the indexer. Every receipt is
 written to [`deployments.json`](deployments.json).
 
-
-
-
 ---
 
 ## SQUAD LINKS · TWO PLAYERS, ONE LINK, ZERO TRUST
