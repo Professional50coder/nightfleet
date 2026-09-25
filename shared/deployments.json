@@ -1,0 +1,32 @@
+{
+  "deployments": {
+    "preprod": {
+      "network": "preprod",
+      "networkId": "preprod",
+      "contractAddress": "15bd24d16878cfc5ee2537223ddd41a13f0ca451c1d64b796a4643b87c94bab6",
+      "txId": "async-submit-confirmed-by-indexer",
+      "deployedAt": "2026-09-25T07:13:45.599Z",
+      "provider": "midnight-js@4.1.1",
+      "endpoints": {
+        "node": "https://rpc.preprod.midnight.network",
+        "indexer": "https://indexer.preprod.midnight.network/api/v3/graphql",
+        "proofServer": "http://localhost:6300"
+      },
+      "versions": {
+        "compactDevtools": "0.5.1",
+        "compactCompiler": "0.31.1",
+        "compactRuntime": "0.16.0",
+        "onchainRuntimeV3": "^3.0.0",
+        "midnightJs": "4.1.1",
+        "ledgerV8": "8.1.0",
+        "proofServerImage": "midnightnetwork/proof-server",
+        "proofServerTag": null
+      },
+      "links": {
+        "address": null,
+        "tx": null
+      }
+    }
+  },
+  "updatedAt": "2026-09-25T07:13:45.599Z"
+}

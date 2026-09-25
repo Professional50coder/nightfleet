@@ -84,7 +84,7 @@ export const NETWORK_PRESETS = Object.freeze({
     networkId: 'preprod',
     node: 'https://rpc.preprod.midnight.network',
     indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-    indexerWs: 'wss://indexer.preprod.midnight.network/api/v4/graphql',
+    indexerWs: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
     proofServer: DEFAULT_PROOF_SERVER_URL,
     faucet: 'https://midnight-tmnight-preprod.nethermind.dev/',
     // No confirmed Preprod explorer base URL yet; set NIGHTFLEET_EXPLORER_URL

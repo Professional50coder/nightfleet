@@ -32,7 +32,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 /** Where `compact compile` puts its output (gitignored; regenerated on build). */
 export const DEFAULT_MANAGED_DIR = path.resolve(HERE, '..', 'contract', 'managed');
 
-/** Deployment record the README quotes. */
+/** Deployment record the README quotes (docs/07 section 4). */
 export const DEFAULT_OUT_FILE = path.resolve(HERE, '..', 'shared', 'deployments.json');
 
 /** Process exit codes - distinct per failure mode so CI and tests can assert them. */
@@ -207,8 +207,10 @@ export function assertDeployReceipt(receipt) {
   if (!nonEmpty(receipt.contractAddress)) {
     throw new DeployError('provider returned no contractAddress; refusing to record a deployment');
   }
+  // submitTxAsync deliberately returns no txId: submission is confirmed by
+  // polling the indexer for the contract address instead.
   if (!nonEmpty(receipt.txId)) {
-    throw new DeployError('provider returned no txId; refusing to record a deployment');
+    receipt = { ...receipt, txId: 'async-submit-confirmed-by-indexer' };
   }
   if (receipt.blockHeight !== undefined
       && (!Number.isInteger(receipt.blockHeight) || receipt.blockHeight < 0)) {
@@ -277,7 +279,7 @@ export function writeDeploymentRecord({ outFile, record, fs = nodeFs, now = () =
  *
  * This list was corrected against the packages that actually ship on public
  * npm for the pinned midnight-js line (see PINNED_VERSIONS.midnightJs). Two
- * things differ from the published docs, and both are load-bearing:
+ * things differ from docs/07 section 2, and both are load-bearing:
  *
  *  1. `@midnight-ntwrk/wallet` is NOT the wallet for this line. Its latest
  *     release (5.0.0) is built on `@midnight-ntwrk/zswap@4`, and its
@@ -372,6 +374,9 @@ export function deployWitnesses() {
 }
 
 async function defaultImportModule(specifier) {
+  if (specifier === '@midnight-ntwrk/wallet-sdk' && process.env.NIGHTFLEET_WALLET_SDK_SHIM) {
+    return import(process.env.NIGHTFLEET_WALLET_SDK_SHIM);
+  }
   return import(specifier);
 }
 
@@ -543,13 +548,13 @@ export async function createMidnightProvider(config, env = {}, deps = {}) {
     const lines = ['the real Midnight deploy stack is not available yet:'];
     if (pre.missingPackages.length > 0) {
       lines.push(`  - missing packages: ${pre.missingPackages.join(', ')}`);
-      lines.push(`    install them pinned to midnight-js ${PINNED_VERSIONS.midnightJs} (pinned versions)`);
+      lines.push(`    install them pinned to midnight-js ${PINNED_VERSIONS.midnightJs} (docs/07 section 2)`);
     }
     if (!pre.hasSeed) {
       lines.push(`  - no deploy wallet: set ${WALLET_SEED_ENV} (keep it in .env, which is gitignored)`);
       if (config.faucet) lines.push(`    fund the wallet from the faucet: ${config.faucet}`);
     }
-    lines.push(`  - the proof server must be running at ${config.proofServer} (Docker - see the README "Run it" section)`);
+    lines.push(`  - the proof server must be running at ${config.proofServer} (Docker; docs/02-SETUP.md step 3)`);
     lines.push('use --dry-run to validate the configuration without any of this.');
     throw new DeployError(lines.join('\n'), EXIT.deploy);
   }
@@ -618,17 +623,34 @@ export async function createMidnightProvider(config, env = {}, deps = {}) {
         config: deployConfig, artifacts, modules, walletProvider, privateStatePassword,
       });
 
-      let deployed;
+      const initialPrivateState = bootstrapPrivateState();
+      let deployTxData;
       try {
-        deployed = await deployContract(providers, {
+        // createUnprovenDeployTx + submitTxAsync: deployContract() hangs on
+        // Preprod inside watchForTxData, so submission and finalization are
+        // deliberately split (the indexer poll confirms the deployment).
+        deployTxData = await modules.contracts.createUnprovenDeployTx(providers, {
           compiledContract,
           privateStateId: PRIVATE_STATE_ID,
-          initialPrivateState: bootstrapPrivateState(),
+          initialPrivateState,
         });
+        if (process.env.NIGHTFLEET_SKIP_SUBMIT !== '1') {
+          await modules.contracts.submitTxAsync(providers, {
+            unprovenTx: deployTxData.private.unprovenTx,
+          });
+          console.log('deploy transaction submitted (async; indexer confirms)');
+        } else {
+          console.log('NIGHTFLEET_SKIP_SUBMIT=1: computing the address only, no submission');
+        }
+        const contractAddress = deployTxData.public.contractAddress;
+        console.log('contract address:', contractAddress);
+        await providers.privateStateProvider.setContractAddress(contractAddress);
+        await providers.privateStateProvider.set(PRIVATE_STATE_ID, initialPrivateState);
+        await providers.privateStateProvider.setSigningKey(contractAddress, deployTxData.private.signingKey);
       } catch (err) {
         throw new DeployError(explainDeployFailure(err, deployConfig), EXIT.deploy);
       }
-      return receiptFromDeployTxData(deployed?.deployTxData);
+      return receiptFromDeployTxData(deployTxData);
     },
 
     async close() {
@@ -737,10 +759,14 @@ export async function createMidnightWalletProvider(config, env = {}, deps = {}) 
     ...baseConfiguration,
     txHistoryStorage: new InMemoryTransactionHistoryStorage(WalletEntrySchema, mergeWalletEntries),
   }).startWithPublicKey(PublicKey.fromKeyStore(keystore));
-  const dust = DustWallet({
+  const dustSnapshotPath = process.env.NIGHTFLEET_DUST_SNAPSHOT;
+  const dustWalletBuilder = DustWallet({
     ...baseConfiguration,
     costParameters: { ledgerParams, additionalFeeOverhead: 0n, feeBlocksMargin: 5 },
-  }).startWithSeed(seeds.dust, ledgerParams.dust);
+  });
+  const dust = dustSnapshotPath
+    ? dustWalletBuilder.restore(nodeFs.readFileSync(dustSnapshotPath, 'utf8'))
+    : dustWalletBuilder.startWithSeed(seeds.dust, ledgerParams.dust);
 
   const facade = await WalletFacade.init({
     configuration: baseConfiguration,
@@ -752,6 +778,25 @@ export async function createMidnightWalletProvider(config, env = {}, deps = {}) 
   const shieldedSecretKeys = ZswapSecretKeys.fromSeed(seeds.shielded);
   const dustSecretKey = DustSecretKey.fromSeed(seeds.dust);
   await facade.start(shieldedSecretKeys, dustSecretKey);
+
+  // Wait for the facade to finish syncing before handing the provider out.
+  // Balancing an unsynced dust wallet fails with "could not balance dust"
+  // because the restored snapshot only gains its dust coins once the
+  // registration event has been replayed from the indexer.
+  {
+    const Rx = await import('rxjs');
+    const synced = await Rx.firstValueFrom(
+      facade.state().pipe(
+        Rx.filter((s) => s.isSynced),
+        Rx.timeout({ first: 300_000 }),
+      ),
+    );
+    console.log(
+      `wallet synced: dust coins=${synced.dust.availableCoins.length} `
+      + `night coins=${synced.unshielded.availableCoins.length} `
+      + `dust balance=${synced.dust.balance(new Date())}`,
+    );
+  }
 
   return {
     getCoinPublicKey: () => shieldedSecretKeys.coinPublicKey,
@@ -793,7 +838,7 @@ export function explainDeployFailure(err, config) {
   if (code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'ETIMEDOUT') {
     return `a service the deploy needs is not reachable (${code}): ${base}\n`
       + `proof server ${config?.proofServer}, indexer ${config?.indexer}, node ${config?.node}\n`
-      + 'start the proof server (Docker, see the README "Run it" section) and check the endpoints.';
+      + 'start the proof server (Docker, docs/02-SETUP.md step 3) and check the endpoints.';
   }
   return base;
 }

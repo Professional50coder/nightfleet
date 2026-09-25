@@ -146,7 +146,7 @@ patterns the whole ecosystem needs next.
 | AI opponent + narrator | **LIVE** | plays through the real game API |
 | Contract compilation | **LIVE** | `npm run compile` in `contract/` (pinned compactc) |
 | Test suites | **267 passing** | `npm test` per package |
-| Preprod deployment | **NEXT** | owner-operated: Docker proof server + Lace + faucet |
+| Preprod deployment | **LIVE** | contract `15bd24d16878cfc5ee2537223ddd41a13f0ca451c1d64b796a4643b87c94bab6` - query `contractAction` on the [Preprod indexer](https://indexer.preprod.midnight.network/api/v3/graphql) to see the `ContractDeploy` |
 
 The demo runs the same rules engine the contract is written against, in the
 page: no wallet, no chain, no proofs. It is the game loop, not the deployment.
@@ -172,9 +172,10 @@ cd app && npm install && npm run dev
 
 ## Known limitations
 
-- **Preprod deployment is the next milestone** - the contract compiles and the
-  loop is proven locally, but the on-chain deploy awaits owner-run steps
-  (Docker proof server, Lace wallet, faucet funds).
+- **Deployed to Midnight Preprod** (contract
+  `15bd24d16878cfc5ee2537223ddd41a13f0ca451c1d64b796a4643b87c94bab6`). The
+  browser demo still runs the local game loop; wiring the UI to the live
+  contract is the active work.
 - The browser demo proves the game loop, not the chain: proofs are exercised by
   the contract suites, the UI runs the shared rules engine.
 - Solo vs AI today; two-player on-chain matches follow the Preprod deploy.
