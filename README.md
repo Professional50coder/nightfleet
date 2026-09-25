@@ -78,7 +78,7 @@ hit/miss results.
 
 The contract enforces three guarantees:
 
-1. The initial placement is a **valid fleet** (ships `[3, 2, 2]` on a 6x6 sea,
+1. The initial placement is a **valid fleet** (ships `[3, 2, 2]` on an 8x8 sea,
    in bounds, non-overlapping).
 2. Every report is **consistent with the committed board** - no moving ships
    mid-game, no re-commits, no duplicate shots, no out-of-turn play.
