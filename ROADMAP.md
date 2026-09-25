@@ -31,17 +31,23 @@ fresh clone.
 
 | Work item | Status |
 |---|---|
-| Midnight **Preprod** deployment with real ZK proofs (official proof server, funded test wallet) | Deploy pipeline built and tested end-to-end locally; on-chain submission in progress |
-| Contract address + on-chain verification steps added to README | Lands the moment the deploy transaction confirms |
-| Demo video v3 with burned-in captions | In production |
+| Midnight **Preprod** deployment with real ZK proofs (official proof server, funded test wallet) | **Done** - contract `15bd24d16878cfc5ee2537223ddd41a13f0ca451c1d64b796a4643b87c94bab6`, confirmed via the preprod indexer |
+| Contract address + on-chain verification steps added to README | **Done** - see "Live on Preprod" in the README |
+| Demo video v3 with burned-in captions | **Done** - embedded in the README and attached to the repo's demo-video release |
 | Submission form (Midnight Korea) | Owner submitting |
 
 ## Phase 2 · NEXT (post-submission, in priority order)
 
-1. **On-chain two-player matches.** Shareable match links: player A creates a
-   game on Preprod, player B joins from the link, both fleets committed
-   on-chain, every turn proven. The contract already supports the full
-   two-player loop; this phase wires the browser UI to it.
+1. **On-chain two-player matches (squad links).** Player A creates a game on
+   Preprod from the browser - Lace connects, proves, and deploys a fresh
+   contract instance - and shares the squad link, which carries the contract
+   address. Player B opens the link, connects Lace, and joins the same
+   contract. Both fleets committed on-chain, every turn proven, no server in
+   the middle. The contract already runs the full two-player loop
+   (`joinGame` seats two players by derived key; `commitBoard`, `fire`,
+   `report`, `claimWin`, and the timeout circuits all gate on seated keys),
+   and the app's driver seam (`app/src/game/midnight-driver.js`) is built for
+   exactly this driver - so every existing feature stays as it is.
 2. **Multiplayer lobby.** Open games list, rematch flow, and player handles
    resolved through Lace.
 3. **Spectator mode.** Watch a live match from the public ledger state:
