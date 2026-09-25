@@ -4,7 +4,7 @@
 <p align="center"><strong>NightFleet</strong> - the first fully playable, provably fair hidden-fleet game on Midnight.</p>
 
 <p align="center">
-<a href="https://nightfleet.vercel.app">Play the demo</a> ·
+<a href="https://nightfleet-game.vercel.app">Play the demo</a> ·
 <a href="#section-02--the-disparity">The disparity</a> ·
 <a href="#section-04--the-contract">The contract</a> ·
 <a href="#section-08--run-it">Run it</a> ·
@@ -162,7 +162,7 @@ Not a slide. A complete, playable system.
 | `shared/` | Protocol constants, fleet rules, network presets | 36 tests; refuses mainnet |
 | `api/` | `LocalGame`: the full loop in-process, replayable action log | Drives every CLI and browser game |
 | `cli/` | A full game in your terminal | `npm run play` - 78 tests |
-| `app/` | The browser game | Live at [nightfleet.vercel.app](https://nightfleet.vercel.app) |
+| `app/` | The browser game | Live at [nightfleet-game.vercel.app](https://nightfleet-game.vercel.app) |
 | `ai/` | Deterministic opponent (3 tiers) + referee narrator | Plays through the real game API - no fake mode |
 | `wallet/` | Lace detection, redaction, Preprod guard | 132 tests |
 
@@ -201,7 +201,7 @@ patterns the whole ecosystem needs next.
 | Component | Status | How to verify |
 |---|---|---|
 | Game loop (commit -> fire -> report -> win -> reveal) | **LIVE** | `npm run play` in `cli/` - full game vs AI |
-| Browser demo | **LIVE** | [nightfleet.vercel.app](https://nightfleet.vercel.app) |
+| Browser demo | **LIVE** | [nightfleet-game.vercel.app](https://nightfleet-game.vercel.app) |
 | AI opponent + narrator | **LIVE** | plays through the real game API |
 | Contract compilation | **LIVE** | `npm run compile` in `contract/` (pinned compactc) |
 | Test suites | **267 passing** | `npm test` per package |
