@@ -14,7 +14,7 @@
 
 <p align="center"><img src="screenshots/gameplay.png" width="860" alt="NightFleet gameplay - your waters vs the fog"></p>
 
-https://github.com/user-attachments/assets/b82379a0-cbbf-4d8d-baf8-10c8acb8d377
+https://github.com/user-attachments/assets/8fa38583-1cd1-4a16-b444-02257f8e7cbc
 
 
 ---
