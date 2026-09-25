@@ -1,0 +1,4 @@
+
+# Staged by scripts/prepare-chain.mjs (local compile or the zk-assets release)
+src/vendor/
+public/zk/
