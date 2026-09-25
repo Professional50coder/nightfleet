@@ -1,8 +1,7 @@
 <p align="center"><img src="brand/moon.svg" width="72" alt="NightFleet moon"></p>
 
-<h1 align="center">NightFleet</h1>
-<p align="center"><strong>Battleship where your fleet is a hash, not a promise.</strong></p>
-<p align="center">The first fully playable, provably fair hidden-fleet game on Midnight.</p>
+<h1 align="center">Battleship where your fleet is a hash, not a promise.</h1>
+<p align="center"><strong>NightFleet</strong> - the first fully playable, provably fair hidden-fleet game on Midnight.</p>
 
 <p align="center">
 <a href="https://nightfleet.vercel.app">Play the demo</a> ·
