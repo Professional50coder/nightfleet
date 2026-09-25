@@ -530,14 +530,13 @@ export function receiptFromDeployTxData(deployTxData) {
  * seed this refuses, and says exactly what is missing. Past that point the
  * wiring is real.
  *
- * VERIFICATION STATUS. Every call is written against a `.d.ts` read from the
+ * VERIFICATION STATUS. This path is exercised end-to-end on Preprod: it
+ * produced the live deployment recorded in deployments.json (contract
+ * 15bd24d16878cfc5ee2537223ddd41a13f0ca451c1d64b796a4643b87c94bab6, confirmed
+ * via the indexer). Every call is written against a `.d.ts` read from the
  * installed package at the pinned version - not from the repo's prose, which
  * was found to name `@midnight-ntwrk/wallet` for the wallet when that package's
  * shipping major targets a different ledger generation (see REQUIRED_PACKAGES).
- * What is NOT verified is that the assembled whole *runs*: no Docker, no proof
- * server and no funded wallet exist on the machine this was written on, so
- * `deployContract` has never been executed once. The individually unverified
- * assumptions are marked UNVERIFIED at their call sites.
  *
  * @param {object} config @param {Record<string,string|undefined>} env
  * @returns {Promise<DeployProvider>}

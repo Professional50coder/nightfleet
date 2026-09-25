@@ -49,6 +49,35 @@ written to [`deployments.json`](deployments.json).
 
 
 
+
+---
+
+## SQUAD LINKS · TWO PLAYERS, ONE LINK, ZERO TRUST
+
+Squad mode plays a full two-player game entirely on-chain. No game server, no
+account system, no lobby operator: the chain is the lobby.
+
+**Host a squad.** Pick *Midnight Preprod (proof-backed)* on the home screen
+and hit **Create squad**. Your browser connects the Lace wallet, deploys a
+fresh NightFleet contract, and hands you a squad link. Send it to your
+opponent any way you like.
+
+**Join a squad.** Open the link. The app reads the contract address from it,
+connects Lace, and seats you in the same game. Place your fleet, commit, and
+play - every shot and every answer is a circuit call settled on Preprod, and
+your fleet, salt, and secret key never leave your browser.
+
+**What each player needs**
+
+- Chrome with the [Lace](https://www.lace.io) wallet extension (Midnight
+  network support), funded with preprod tNIGHT from the
+  [faucet](https://midnight-tmnight-preprod.nethermind.dev/)
+- A local proof server, which Lace proves against:
+  `docker run -p 6300:6300 midnightntwrk/proof-server:8.1.0 midnight-proof-server -v`
+
+The deployed game lives at its contract address - anyone can audit the turns
+through the indexer, and nobody, including us, can see either fleet.
+
 ---
 
 Every Battleship turn asks one player a question only they can answer:

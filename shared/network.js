@@ -43,7 +43,7 @@ export const PINNED_VERSIONS = Object.freeze({
   ...TOOLCHAIN,
   midnightJs: '4.1.1',
   ledgerV8: '8.1.0',
-  proofServerImage: 'midnightnetwork/proof-server',
+  proofServerImage: 'midnightntwrk/proof-server',
   // Pin the proof-server Docker tag to your ledger/prover
   // version." Not yet confirmed against a running server - deliberately null so
   // the deploy CLI warns instead of silently implying :latest is fine.
