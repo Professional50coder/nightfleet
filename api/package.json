@@ -1,0 +1,14 @@
+{
+  "name": "@nightfleet/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.16.0",
+    "@midnight-ntwrk/onchain-runtime-v3": "^3.0.0",
+    "vitest": "3.2.4"
+  }
+}

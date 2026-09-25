@@ -1,0 +1,305 @@
+// SPDX-License-Identifier: Apache-2.0
+// NightFleet — ZK Battleship on Midnight
+//
+// ⚠️ v0 DRAFT. This encodes the intended design (state + circuits + privacy model).
+// Compact stdlib names, loop syntax, and hashing helpers MUST be validated against
+// the pinned compiler in milestone M0 (`compact compile`). Treat comments marked
+// TODO(compile) as points to reconcile with docs.midnight.network/compact.
+//
+// Design rationale: the board is a 64-cell private vector (witness). We prove a
+// hit/miss for a PUBLIC coordinate by (1) recomputing the board commitment and
+// asserting it matches what was published, then (2) selecting the queried cell via
+// a bounded 64-iteration mux (ZK-friendly: fixed loop, no dynamic indexing).
+
+pragma language_version 0.23;   // TODO(compile): pin to support-matrix version
+import CompactStandardLibrary;
+
+// ---- constants --------------------------------------------------------------
+// 8x8 grid; fleet = sizes [3,2,2] => 7 occupied cells (tune for proving cost).
+// TODO(compile): confirm const/size-literal syntax.
+// GRID_CELLS = 64, FLEET_CELLS = 7
+//
+// Liveness / forfeit thresholds (see `startTimeout` + `claimTimeout` below).
+// Compact 0.31.1 gives a circuit no way to READ the clock - `kernel` exposes
+// only the two predicates `blockTimeGreaterThan(t)` / `blockTimeLessThan(t)`
+// (verified against the compiler: every read-shaped name - blockTime,
+// blockHeight, secondsSinceEpoch, now, timestamp - is rejected with
+// "operation ... undefined for ledger field type Kernel"). So a deadline
+// cannot be computed on-chain from "now"; the claimant supplies it and the
+// contract brackets it between the two predicates, which pins it to
+// [now + TIMEOUT_GRACE_SECONDS, now + TIMEOUT_MAX_SECONDS].
+//
+// TIMEOUT_GRACE_SECONDS is the floor on how long a defender always gets once
+// the clock is started, and it is the number that matters for safety: too
+// tight and the forfeit becomes its own attack, where a griefer starts the
+// clock and wins by out-racing an honest but slow defender. One hour is
+// deliberately far beyond any honest response cost - Midnight blocks are
+// seconds apart and a `report` proof is tens of seconds - so no honest player
+// who is at the keyboard can lose to it, while a genuinely absent player
+// still cannot stall the board for more than the hour they were given.
+// The clock only starts when the waiting attacker asks for it, so the real
+// window a defender sees is (time to notice) + one hour, never less.
+// (Compact 0.23 has no top-level `const`, so the named thresholds are pure
+// nullary circuits; they inline to literals.)
+circuit TIMEOUT_GRACE_SECONDS(): Uint<64> { return 3600; }     // 1 hour
+// Ceiling on the deadline. A far-future deadline only delays the claimant's
+// own win, so this is a sanity bound rather than a defence: it keeps the
+// stored deadline anchored to chain time (the lower predicate is what proves
+// the value is "now"-relative at all) and stops a nonsense value being pinned
+// into ledger state for the rest of the game.
+circuit TIMEOUT_MAX_SECONDS(): Uint<64> { return 604800; }     // 7 days
+
+// ---- types ------------------------------------------------------------------
+struct Coord { x: Uint<8>, y: Uint<8> }
+
+export enum Phase { OPEN, PLACED_1, PLACED_2, PLAYING, FINISHED }
+
+// ---- public ledger state ----------------------------------------------------
+export ledger p1: Bytes<32>;
+export ledger p2: Bytes<32>;
+export ledger commitment1: Bytes<32>;
+export ledger commitment2: Bytes<32>;
+export ledger phase: Phase;
+export ledger turn: Bytes<32>;
+export ledger pendingShot: Maybe<Coord>;
+// Absolute unix-seconds deadline for the defender to answer `pendingShot`.
+// Set only by the waiting attacker via `startTimeout`, cleared by `report`.
+export ledger timeoutDeadline: Maybe<Uint<64>>;
+export ledger hits1: Counter;          // hits landed against player 1
+export ledger hits2: Counter;          // hits landed against player 2
+export ledger shots1: Map<Uint<8>, Boolean>;   // cells player 1 has fired at
+export ledger shots2: Map<Uint<8>, Boolean>;   // cells player 2 has fired at
+export ledger winner: Maybe<Bytes<32>>;
+export ledger revealed1: Boolean;   // p1 revealed their board post-game (audit)
+export ledger revealed2: Boolean;   // p2 revealed their board post-game (audit)
+
+// ---- private (off-chain) witnesses ------------------------------------------
+witness localSecretKey(): Bytes<32>;
+witness myBoard(): Vector<64, Uint<1>>;   // 1 = ship cell, 0 = water
+witness mySalt(): Bytes<32>;
+
+constructor() {
+  phase = Phase.OPEN;
+  pendingShot = none<Coord>();
+  timeoutDeadline = none<Uint<64>>();
+  winner = none<Bytes<32>>();
+  hits1.increment(0);
+  hits2.increment(0);
+  revealed1 = false;
+  revealed2 = false;
+}
+
+// ---- helpers ----------------------------------------------------------------
+// Public key from the local secret (mirrors example-bboard's publicKey pattern).
+circuit derivePk(sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "nightfleet:pk"), sk]);
+}
+
+// Commit to a board = hash(domain, salt, board-bytes).
+// TODO(compile): confirm how to hash a Vector<64,Uint<1>> (pack to Bytes or
+// hash the vector directly via persistentHash over a Vector type).
+circuit boardCommit(board: Vector<64, Uint<1>>, salt: Bytes<32>): Bytes<32> {
+  return persistentHash<[Bytes<32>, Bytes<32>, Vector<64, Uint<1>>]>(
+    [pad(32, "nightfleet:board"), salt, board]
+  );
+}
+
+circuit addCell(total: Uint<8>, cell: Uint<1>): Uint<8> {
+  return (total + (cell as Uint<8>)) as Uint<8>;
+}
+
+// Count occupied cells (Tier B validity).
+circuit fleetCount(board: Vector<64, Uint<1>>): Uint<8> {
+  return fold(addCell, 0 as Uint<8>, board);
+}
+
+circuit selectCell(out: Uint<1>, cell: Uint<1>, current: Uint<8>, target: Uint<8>): Uint<1> {
+  return current == target ? cell : out;
+}
+
+// Read a single cell by public index via a bounded 64-element mux (ZK-safe).
+circuit cellAt(board: Vector<64, Uint<1>>, idx: Uint<8>): Uint<1> {
+  return fold(
+    selectCell,
+    0 as Uint<1>,
+    board,
+    [
+      0, 1, 2, 3, 4, 5, 6, 7,
+      8, 9, 10, 11, 12, 13, 14, 15,
+      16, 17, 18, 19, 20, 21, 22, 23,
+      24, 25, 26, 27, 28, 29, 30, 31,
+      32, 33, 34, 35, 36, 37, 38, 39,
+      40, 41, 42, 43, 44, 45, 46, 47,
+      48, 49, 50, 51, 52, 53, 54, 55,
+      56, 57, 58, 59, 60, 61, 62, 63
+    ] as Vector<64, Uint<8>>,
+    [idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx, idx]
+  );
+}
+
+// ---- circuits (entry points) ------------------------------------------------
+export circuit joinGame(): [] {
+  const pk = disclose(derivePk(localSecretKey()));
+  assert(phase == Phase.OPEN, "game already started");
+  if (p1 == default<Bytes<32>>) {
+    p1 = pk;
+  } else {
+    assert(pk != p1, "already joined as p1");
+    assert(p2 == default<Bytes<32>>, "game is full");
+    p2 = pk;
+  }
+}
+
+export circuit commitBoard(): [] {
+  const sk = localSecretKey();
+  const pk = disclose(derivePk(sk));
+  assert(pk == p1 || pk == p2, "not a player");
+  // Both seats must be filled before placement: committing while p2 is still
+  // empty would leave phase PLACED_1, and p2's joinGame would brick forever.
+  assert(p1 != default<Bytes<32>> && p2 != default<Bytes<32>>, "both players must join first");
+  // No re-commit: a published board commitment is immutable for the whole game.
+  assert(pk == p1 ? commitment1 == default<Bytes<32>> : commitment2 == default<Bytes<32>>, "board already committed");
+  const board = myBoard();
+  // Tier B validity: exact fleet size (ship-shape validity = Tier A, Wave 3).
+  assert(fleetCount(board) == (7 as Uint<8>), "invalid fleet size");
+  const c = disclose(boardCommit(board, mySalt()));
+  if (pk == p1) {
+    commitment1 = c;
+    phase = (phase == Phase.OPEN) ? Phase.PLACED_1 : Phase.PLAYING;
+  } else {
+    commitment2 = c;
+    phase = (phase == Phase.PLACED_1) ? Phase.PLAYING : Phase.PLACED_2;
+  }
+  if (phase == Phase.PLAYING) { turn = p1; }   // p1 fires first
+}
+
+export circuit fire(x: Uint<8>, y: Uint<8>): [] {
+  const pk = disclose(derivePk(localSecretKey()));
+  assert(phase == Phase.PLAYING, "not in play");
+  assert(pk == turn, "not your turn");
+  assert(!pendingShot.is_some, "resolve the pending shot first");
+  assert(x < (8 as Uint<8>) && y < (8 as Uint<8>), "out of bounds");
+  // One shot per cell per player: without this, an attacker could fire at one
+  // known ship cell seven times and claim a win. (A per-player shot set - the
+  // "bitmap" of the design docs; Compact has no bit-shift ops, so a Map
+  // carries the same 64-cell one-shot invariant.)
+  const idx = ((y * (8 as Uint<8>)) + x) as Uint<8>;
+  if (pk == p1) {
+    assert(!shots1.member(disclose(idx)), "cell already fired");
+    shots1.insert(disclose(idx), true);
+  } else {
+    assert(!shots2.member(disclose(idx)), "cell already fired");
+    shots2.insert(disclose(idx), true);
+  }
+  pendingShot = disclose(some<Coord>(Coord { x: x, y: y }));
+  // A fresh shot always starts with no clock running; the attacker arms it
+  // separately via `startTimeout` if the defender goes quiet.
+  timeoutDeadline = none<Uint<64>>();
+}
+
+export circuit report(): [] {
+  const sk = localSecretKey();
+  const pk = disclose(derivePk(sk));
+  assert(phase == Phase.PLAYING, "not in play");
+  assert(pendingShot.is_some, "no pending shot");
+  // `pk != turn` alone admits any non-attacker key, including strangers. The
+  // commitment check below already stops them forging a report, but assert
+  // seatedness up front so the failure is honest rather than incidental.
+  assert(pk == p1 || pk == p2, "not a player");
+  assert(pk != turn, "attacker cannot report");            // defender only
+  const board = myBoard();
+  // Prove the board is the one we committed to (can't move ships).
+  const myCommit = (pk == p1) ? commitment1 : commitment2;
+  assert(boardCommit(board, mySalt()) == myCommit, "board mismatch");
+  const shot = pendingShot.value;
+  const idx = ((shot.y * (8 as Uint<8>)) + shot.x) as Uint<8>;
+  const isHit = cellAt(board, idx);
+  if (disclose(isHit == (1 as Uint<1>))) {
+    if (pk == p1) { hits1.increment(1); } else { hits2.increment(1); }
+  }
+  pendingShot = none<Coord>();
+  // Answering the shot disarms any forfeit clock the attacker had started.
+  timeoutDeadline = none<Uint<64>>();
+  turn = (turn == p1) ? p2 : p1;                            // flip turn
+  // NOTE: `isHit` is disclosed implicitly via hits counter delta + shot log.
+}
+
+export circuit claimWin(): [] {
+  const pk = disclose(derivePk(localSecretKey()));
+  assert(phase == Phase.PLAYING, "not in play");
+  // Caller must be a seated player. Without this, `oppHits` falls through to
+  // the p2 branch for ANY non-p1 key, so a stranger who never joined could
+  // call claimWin the moment p1's fleet was sunk and be recorded as winner -
+  // stealing the win from p2, who did the work.
+  assert(pk == p1 || pk == p2, "not a player");
+  // opponent's fleet fully sunk?
+  const oppHits = (pk == p1) ? hits2 : hits1;   // hits I landed on opponent
+  assert(oppHits == (7 as Uint<64>), "opponent fleet is not sunk");
+  winner = disclose(some<Bytes<32>>(pk));
+  phase = Phase.FINISHED;
+}
+
+// ---- liveness: forfeit an unanswered shot ----------------------------------
+// Nothing compels a defender to call `report()`. Without a forfeit path a
+// player who is losing can simply stop responding: `phase` stays PLAYING,
+// `pendingShot` stays set and the game is stuck forever. That is not a
+// soundness break (nobody wins falsely) but it is a griefing vector.
+//
+// `startTimeout` arms the clock, `claimTimeout` collects. They are split
+// because Compact 0.31.1 cannot read the clock, only compare against it: the
+// deadline has to come in as an argument and be bracketed. Splitting also
+// means `fire` keeps its signature, and the defender's window starts when the
+// attacker actually complains rather than at the instant of the shot.
+export circuit startTimeout(deadline: Uint<64>): [] {
+  const pk = disclose(derivePk(localSecretKey()));
+  assert(phase == Phase.PLAYING, "not in play");
+  assert(pk == p1 || pk == p2, "not a player");
+  assert(pendingShot.is_some, "no pending shot");
+  // While a shot is pending, `turn` still names the attacker - `report` is
+  // what flips it. So this is exactly "the player who is waiting on a reply",
+  // and the defender cannot arm a clock against the person waiting on them.
+  assert(pk == turn, "only the waiting attacker may start the clock");
+  assert(!timeoutDeadline.is_some, "timeout already running");
+  // Absolute unix seconds. The bound also makes the two subtractions below
+  // underflow-free; any real deadline is ~1.7e9.
+  // The deadline is public by construction - it is written to the ledger and
+  // compared against the block clock - so disclose it once, up front.
+  const dl = disclose(deadline);
+  assert(dl > TIMEOUT_MAX_SECONDS(), "deadline must be absolute unix seconds");
+  // Bracket the claimant-supplied deadline against actual chain time:
+  //   now < deadline - GRACE  =>  deadline > now + GRACE   (defender's floor)
+  //   now > deadline - MAX    =>  deadline < now + MAX     (sanity ceiling)
+  assert(kernel.blockTimeLessThan((dl - TIMEOUT_GRACE_SECONDS()) as Uint<64>),
+         "deadline too soon");
+  assert(kernel.blockTimeGreaterThan((dl - TIMEOUT_MAX_SECONDS()) as Uint<64>),
+         "deadline too far in the future");
+  timeoutDeadline = some<Uint<64>>(dl);
+}
+
+export circuit claimTimeout(): [] {
+  const pk = disclose(derivePk(localSecretKey()));
+  assert(phase == Phase.PLAYING, "not in play");
+  assert(pk == p1 || pk == p2, "not a player");
+  assert(pendingShot.is_some, "no pending shot");
+  assert(pk == turn, "only the waiting attacker may claim a timeout");
+  assert(timeoutDeadline.is_some, "no timeout running");
+  // Enforced by the chain, not by the claimant: the comparison is a ledger
+  // operation whose result lands in the public transcript and is re-run by
+  // the node against the block's own clock, so a forged "expired" is rejected.
+  assert(kernel.blockTimeGreaterThan(timeoutDeadline.value), "timeout has not expired");
+  winner = disclose(some<Bytes<32>>(pk));
+  phase = Phase.FINISHED;
+}
+
+// Post-game audit: a player proves the board they now expose off-chain is the
+// one committed at placement time, and marks that reveal on-chain.
+export circuit revealBoard(): [] {
+  const sk = localSecretKey();
+  const pk = disclose(derivePk(sk));
+  assert(phase == Phase.FINISHED, "game not finished");
+  assert(pk == p1 || pk == p2, "not a player");
+  const board = myBoard();
+  const myCommit = (pk == p1) ? commitment1 : commitment2;
+  assert(boardCommit(board, mySalt()) == myCommit, "board mismatch");
+  if (pk == p1) { revealed1 = true; } else { revealed2 = true; }
+}

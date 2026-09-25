@@ -1,0 +1,76 @@
+/*
+ * NightFleet design tokens.
+ *
+ * Dark, filmic, near-black base with a brass primary and a cyan "proof" glow,
+ * per docs/11 section 6 and docs/18. Mono is used for every coordinate, hash
+ * and ID - the one typographic rule the whole app obeys.
+ *
+ * Fonts are system stacks: the app must run with no network (it is local-only),
+ * so no webfont is fetched. Swap in Fraunces/Inter/JetBrains Mono here when the
+ * deck build wants them.
+ */
+:root {
+  color-scheme: dark;
+
+  /* surfaces */
+  --ink-900: #08090c;
+  --ink-800: #0c0e13;
+  --ink-700: #12151c;
+  --ink-600: #181c25;
+  --ink-500: #232834;
+  --ink-400: #2f3543;
+
+  /* text */
+  --text: #e8eaf0;
+  --text-dim: #9aa2b4;
+  --text-faint: #5f6878;
+
+  /* accents */
+  --brass: #d4a574;
+  --brass-dim: #8a6c4b;
+  --proof: #4fd6e0;      /* cyan proof glow */
+  --hit: #e0575f;
+  --miss: #5a6c86;
+  --ok: #5fd6a0;
+
+  /* lines & depth: hairlines, not heavy shadows */
+  --line: rgba(232, 234, 240, 0.09);
+  --line-strong: rgba(232, 234, 240, 0.18);
+  --glass: rgba(18, 21, 28, 0.72);
+  --shadow-soft: 0 1px 0 rgba(255, 255, 255, 0.03), 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  /* shape */
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --cell: clamp(30px, 7.4vw, 46px);
+
+/* docs/05 section 8 - large tap targets: on phones wide enough to fit them,
+   raise the cell floor from 30px to 34px (7.4vw takes over again by ~460px).
+   Below 360px the 30px floor stays so the board never overflows. */
+@media (min-width: 360px) {
+  :root { --cell: clamp(34px, 7.4vw, 46px); }
+}
+
+  /* motion: one spring language everywhere (docs/18 section 6). --spring is
+     the default; --spring-pop adds overshoot for settle-back moments like the
+     magnetic buttons; --spring-soft is the slow ease for ambient one-shots
+     like confetti. Component css never writes a raw cubic-bezier. */
+  --spring: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring-pop: cubic-bezier(0.22, 1.61, 0.36, 1);
+  --spring-soft: cubic-bezier(0.2, 0.6, 0.4, 1);
+  --fast: 120ms;
+  --base: 220ms;
+
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --fast: 0ms; --base: 0ms; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+

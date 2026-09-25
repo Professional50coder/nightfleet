@@ -1,0 +1,929 @@
+/* NightFleet - layout and components. Desktop-first, collapses to one column
+   under 900px; the board itself is sized in vw so it never overflows a phone. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(1200px 700px at 12% -10%, rgba(79, 214, 224, 0.07), transparent 60%),
+    radial-gradient(900px 600px at 88% 4%, rgba(212, 165, 116, 0.06), transparent 62%),
+    linear-gradient(180deg, var(--ink-900), var(--ink-800) 40%, #06070a);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: var(--font-mono); font-variant-ligatures: none; letter-spacing: -0.01em; }
+.muted { color: var(--text-dim); }
+.dim { color: var(--text-faint); }
+.small { font-size: 12.5px; }
+
+h1, h2, h3 { margin: 0; font-weight: 600; letter-spacing: -0.015em; }
+h1 { font-size: clamp(34px, 6vw, 58px); }
+h2 { font-size: 21px; }
+h3 { font-size: 14px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  background: var(--ink-600);
+}
+
+/* ---- shell -------------------------------------------------------------- */
+
+.app { display: flex; flex-direction: column; min-height: 100%; position: relative; }
+
+/* Grain overlay - the perfekt signature. Pure CSS so nothing is fetched. */
+.app__grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  z-index: 100;
+  background-image: repeating-conic-gradient(#fff 0% 25%, transparent 0% 50%);
+  background-size: 3px 3px;
+}
+
+.app__bar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--line);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  background: var(--glass);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.app__mark {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.34em;
+  color: var(--brass);
+}
+
+.app__bar .btn--tiny { margin-left: auto; }
+
+.app__main { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 26px 18px 40px; }
+
+.app__foot {
+  padding: 18px 22px 28px;
+  border-top: 1px solid var(--line);
+  text-align: center;
+}
+
+/* ---- primitives --------------------------------------------------------- */
+
+/* docs/18 sections 1+6: panels are the frosted-glass surfaces (overlays and
+   HUD-adjacent cards); the boards stay crisp and un-blurred. One glass recipe
+   everywhere - same token, same blur, Safari prefix included. */
+.panel {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px) saturate(1.25);
+  backdrop-filter: blur(14px) saturate(1.25);
+  box-shadow: var(--shadow-soft);
+  padding: 18px;
+}
+
+.panel__head { margin-bottom: 14px; }
+.panel__head--tight { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.panel__head p { margin: 6px 0 0; }
+
+.btn {
+  font: inherit;
+  font-size: 13.5px;
+  color: var(--text);
+  background: var(--ink-600);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: 8px 14px;
+  cursor: pointer;
+  transform: translate(var(--mx, 0px), calc(var(--my, 0px) + var(--lift, 0px))) scale(var(--press, 1));
+  transition: transform var(--fast) var(--spring), background var(--fast), border-color var(--fast);
+}
+.btn:hover:not(:disabled) { background: var(--ink-500); --lift: -1px; }
+.btn:active:not(:disabled) { --lift: 0px; --press: 0.985; }
+.btn:disabled { opacity: 0.42; cursor: not-allowed; }
+.btn:focus-visible { outline: 2px solid var(--proof); outline-offset: 2px; }
+
+.btn--primary {
+  background: linear-gradient(180deg, var(--brass), var(--brass-dim));
+  border-color: rgba(212, 165, 116, 0.5);
+  color: #16120c;
+  font-weight: 600;
+}
+.btn--primary:hover:not(:disabled) { background: linear-gradient(180deg, #e2b787, var(--brass-dim)); }
+.btn--ghost { background: transparent; }
+.btn--wide { width: 100%; margin-top: 4px; }
+.btn--tiny { padding: 3px 9px; font-size: 11.5px; border-radius: var(--r-sm); }
+
+/* docs/18 section 1: magnetic primary CTAs lean toward the pointer a few px
+   (JS sets --mx/--my, capped) and spring back with a soft overshoot on leave.
+   Transform-only, so it composes with the hover lift and press compression
+   above. Reduced-motion flattens the return spring via the global duration
+   kill, and the JS side never engages there or on coarse pointers. */
+.btn--magnetic { will-change: transform; }
+.btn--magnetic:not(:hover):not(:active) {
+  transition: transform 480ms var(--spring-pop), background var(--fast), border-color var(--fast);
+}
+
+.chip {
+  display: inline-block;
+  font-size: 11.5px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(79, 214, 224, 0.06);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+.chip--ok { color: var(--ok); border-color: rgba(95, 214, 160, 0.35); background: rgba(95, 214, 160, 0.08); }
+
+.input {
+  font: inherit;
+  color: var(--text);
+  background: var(--ink-700);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-md);
+  padding: 8px 10px;
+  width: 100%;
+}
+.input:focus-visible { outline: 2px solid var(--proof); outline-offset: 1px; }
+
+.field { border: 0; padding: 0; margin: 0 0 18px; }
+.field legend {
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.alert {
+  border: 1px solid rgba(224, 87, 95, 0.4);
+  background: rgba(224, 87, 95, 0.09);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  margin: 0 0 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  font-size: 13.5px;
+}
+
+.toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-dim); }
+
+/* ---- home --------------------------------------------------------------- */
+
+.home { display: grid; gap: 26px; grid-template-columns: 1.05fr 0.95fr; align-items: center; }
+.home__hero h1 em { color: var(--brass); font-style: italic; }
+.home__tagline { color: var(--text-dim); max-width: 46ch; font-size: 16px; }
+
+.segmented { display: flex; gap: 6px; }
+.segmented__item {
+  flex: 1;
+  font: inherit;
+  font-size: 13px;
+  text-transform: capitalize;
+  padding: 8px 6px;
+  color: var(--text-dim);
+  background: var(--ink-700);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition: color var(--fast) var(--spring), background var(--fast) var(--spring), border-color var(--fast) var(--spring);
+}
+.segmented__item.is-on { color: var(--text); border-color: var(--brass); background: rgba(212, 165, 116, 0.12); }
+
+.drivers { display: grid; gap: 8px; }
+.drivers__item {
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  font: inherit;
+  padding: 11px 13px;
+  color: var(--text);
+  background: var(--ink-700);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  cursor: pointer;
+}
+.drivers__item.is-on { border-color: var(--brass); background: rgba(212, 165, 116, 0.1); }
+.drivers__item.is-off { opacity: 0.6; cursor: not-allowed; }
+
+/* ---- board -------------------------------------------------------------- */
+
+.board { margin: 0; }
+
+.board__frame {
+  display: grid;
+  grid-template-columns: 22px auto;
+  grid-template-rows: 18px auto;
+  gap: 4px;
+  width: max-content;
+  max-width: 100%;
+}
+.board__corner { grid-area: 1 / 1; }
+.board__cols { grid-area: 1 / 2; display: grid; grid-template-columns: repeat(8, var(--cell)); gap: 3px; }
+.board__rows { grid-area: 2 / 1; display: grid; grid-template-rows: repeat(8, var(--cell)); gap: 3px; }
+.board__label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-faint);
+  display: grid;
+  place-items: center;
+}
+
+.board__grid {
+  grid-area: 2 / 2;
+  display: grid;
+  grid-template-columns: repeat(8, var(--cell));
+  grid-auto-rows: var(--cell);
+  gap: 3px;
+  padding: 5px;
+  margin: -5px;
+  border-radius: var(--r-md);
+}
+
+.board__caption {
+  margin-top: 10px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.cell {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: rgba(20, 24, 32, 0.85);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--text-dim);
+  cursor: default;
+  transition: transform var(--fast) var(--spring), background var(--fast), box-shadow var(--fast);
+}
+.cell--live { cursor: crosshair; }
+.cell--live:hover { background: rgba(79, 214, 224, 0.12); transform: translateY(-1px); }
+.cell:focus-visible { outline: 2px solid var(--proof); outline-offset: 1px; z-index: 2; }
+
+.cell--fog { background: rgba(16, 19, 26, 0.9); }
+.cell--ship { background: linear-gradient(180deg, #39414f, #262c37); border-color: var(--line-strong); }
+.cell--revealed { background: repeating-linear-gradient(45deg, #2a3140 0 4px, #1d222c 4px 8px); }
+.cell--miss { color: var(--miss); background: rgba(90, 108, 134, 0.14); }
+.cell--hit {
+  color: #fff;
+  background: linear-gradient(180deg, var(--hit), #9c2f38);
+  border-color: rgba(224, 87, 95, 0.55);
+  box-shadow: 0 0 14px rgba(224, 87, 95, 0.35);
+}
+.cell--preview { background: rgba(212, 165, 116, 0.28); border-color: var(--brass); }
+.cell--preview-bad { background: rgba(224, 87, 95, 0.24); border-color: rgba(224, 87, 95, 0.6); }
+
+/* ---- setup -------------------------------------------------------------- */
+
+.setup__body { display: grid; grid-template-columns: auto minmax(240px, 1fr); gap: 28px; align-items: start; }
+.setup__side { display: grid; gap: 14px; }
+
+.tray { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tray__ship {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font: inherit;
+  text-align: left;
+  color: var(--text);
+  background: var(--ink-700);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  cursor: pointer;
+  transition: border-color var(--fast), background var(--fast);
+}
+.tray__ship--selected { border-color: var(--brass); background: rgba(212, 165, 116, 0.1); }
+.tray__ship--placed { opacity: 0.66; }
+.tray__pips { display: inline-flex; gap: 3px; }
+.tray__pips i { width: 12px; height: 12px; border-radius: 3px; background: #39414f; display: block; }
+.tray__meta { display: flex; flex-direction: column; font-size: 12.5px; }
+.tray__meta .mono { color: var(--text-faint); font-size: 11px; }
+
+.setup__controls { display: flex; gap: 8px; flex-wrap: wrap; }
+.setup__status { margin: 0; font-size: 12.5px; color: var(--text-dim); }
+.setup__status.ok { color: var(--ok); }
+.setup__notice { margin: 0; font-size: 12.5px; color: var(--hit); }
+
+/* ---- battle ------------------------------------------------------------- */
+
+.battle { display: grid; gap: 18px; position: relative; }
+
+.hud {
+  display: grid;
+  grid-template-columns: minmax(170px, auto) 1fr auto;
+  gap: 18px;
+  align-items: center;
+  padding: 13px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.hud__turn { display: flex; align-items: center; gap: 9px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--text-faint); }
+.dot--live { background: var(--proof); box-shadow: 0 0 10px var(--proof); animation: pulse 2.4s infinite; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+
+.hud__meters { display: flex; gap: 22px; flex-wrap: wrap; }
+.meter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-dim); }
+.meter__track { display: inline-flex; gap: 3px; }
+.meter__track i { width: 9px; height: 9px; border-radius: 2px; background: var(--ink-400); display: block; }
+.meter__track i.on { background: var(--hit); box-shadow: 0 0 8px rgba(224, 87, 95, 0.5); }
+.meter__count { font-size: 11.5px; color: var(--text-faint); }
+
+.hud__chain { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.hud__hashes { display: flex; flex-direction: column; font-size: 11px; color: var(--text-faint); }
+.hud__why { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 12px; }
+.hud__why p { margin: 0 0 6px; max-width: 74ch; font-size: 13.5px; }
+
+.battle__boards { display: flex; gap: 34px; flex-wrap: wrap; justify-content: center; }
+
+.battle__last { margin: 0; text-align: center; font-size: 14px; }
+.battle__last--hit strong { color: var(--hit); }
+.battle__last--miss strong { color: var(--miss); }
+
+.battle__aside { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; align-items: start; }
+
+.narrator__line { margin: 0; font-size: 14.5px; line-height: 1.55; }
+.narrator__history { margin: 12px 0 0; padding-left: 16px; color: var(--text-faint); font-size: 12.5px; }
+.narrator__history li { margin-bottom: 5px; }
+
+.log__list { list-style: none; margin: 0; padding: 0; max-height: 260px; overflow: auto; }
+.log__row {
+  display: grid;
+  grid-template-columns: 26px 34px 1fr 40px 44px;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 2px;
+  border-bottom: 1px solid var(--line);
+}
+.log__seq, .log__coord { color: var(--text-faint); }
+.log__who { color: var(--text-dim); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.08em; }
+.log__what { color: var(--text-dim); }
+.log__result { font-size: 10.5px; font-weight: 700; letter-spacing: 0.06em; text-align: right; }
+.log__result--hit { color: var(--hit); }
+.log__result--miss { color: var(--miss); }
+
+/* ---- result ------------------------------------------------------------- */
+
+.result {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  margin-top: 18px;
+  text-align: center;
+  background: var(--glass);
+  -webkit-backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  animation: rise var(--base) var(--spring);
+}
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+.result--win { border-color: rgba(212, 165, 116, 0.45); box-shadow: 0 0 40px rgba(212, 165, 116, 0.12); }
+.result--loss { border-color: rgba(224, 87, 95, 0.35); }
+.result p { margin: 8px 0 16px; }
+.result__actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+
+/* ---- responsive --------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .home { grid-template-columns: 1fr; }
+  .setup__body { grid-template-columns: 1fr; }
+  .battle__aside { grid-template-columns: 1fr; }
+  .hud { grid-template-columns: 1fr; }
+  .hud__chain { justify-content: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .app__main { padding: 18px 12px 32px; }
+  .battle__boards { gap: 22px; }
+  .panel { padding: 14px; }
+}
+
+/* ---- micro-feedback (docs/18 sections 1-2) ---------------------------------
+   Every answered shot pulses the cell it landed on; the board where the current
+   turn happens carries a soft highlight; pressable cells compress under the
+   pointer. Transform/opacity only (docs/18 section 5); the tokens'
+   prefers-reduced-motion block already flattens all of this. */
+
+.cell--fresh.cell--hit {
+  animation: nf-cell-hit var(--base) var(--spring);
+}
+
+.cell--fresh.cell--miss {
+  animation: nf-cell-miss var(--base) var(--spring);
+}
+
+@keyframes nf-cell-hit {
+  0% { transform: scale(0.72); box-shadow: 0 0 0 0 rgba(224, 87, 95, 0.55); }
+  45% { transform: scale(1.08) translate(1px, -1px); }
+  65% { transform: scale(1.03) translate(-1px, 1px); }
+  82% { transform: scale(1.01) translate(0.5px, 0); }
+  100% { transform: scale(1) translate(0, 0); box-shadow: 0 0 0 14px rgba(224, 87, 95, 0); }
+}
+
+@keyframes nf-cell-miss {
+  0% { transform: scale(0.85); box-shadow: 0 0 0 0 rgba(90, 108, 134, 0.5), 0 0 0 0 rgba(90, 108, 134, 0.26); }
+  100% { transform: scale(1); box-shadow: 0 0 0 12px rgba(90, 108, 134, 0), 0 0 0 22px rgba(90, 108, 134, 0); }
+}
+
+/* docs/18 section 2 - HIT: screen-edge flash. A pointer-inert overlay whose
+   inset glow flares and fades; opacity only is animated, so it stays in the
+   transform/opacity budget (docs/18 section 5). Reduced-motion removes it. */
+.battle__flash {
+  position: absolute;
+  inset: -8px;
+  border-radius: 18px;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: inset 0 0 42px 6px rgba(224, 87, 95, 0.4);
+  animation: nf-edge-flash 640ms ease-out;
+}
+
+@keyframes nf-edge-flash {
+  0% { opacity: 0; }
+  18% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* docs/18 section 2 - fire ripple: an expanding proof-cyan ring on the cell
+   just fired at, repeating until the answer lands (Battle removes it then).
+   Box-shadow only, so it never touches layout (docs/18 section 5). Under
+   reduced-motion an endlessly looping ring would strobe, so it is removed
+   entirely rather than flattened. */
+.cell__ripple {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  animation: nf-fire-ripple 900ms var(--spring) infinite;
+}
+
+@keyframes nf-fire-ripple {
+  0% { opacity: 0.9; box-shadow: 0 0 0 0 rgba(79, 214, 224, 0.4); }
+  100% { opacity: 0; box-shadow: 0 0 0 16px rgba(79, 214, 224, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cell__ripple { display: none; }
+}
+
+/* ---- docs/18 section 3: proof inspector ("what's real / what's hidden") ---
+   Expandable card with an animated public/private toggle. The thumb slides on
+   transform only; panes reuse the shared `rise` keyframes, so reduced-motion
+   flattens everything through the token overrides. */
+.inspector { grid-column: 1 / -1; }
+
+.inspector__title {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+}
+
+.inspector__toggle {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px;
+  margin-bottom: 10px;
+}
+
+.inspector__thumb {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 2px;
+  width: calc(50% - 2px);
+  border-radius: 999px;
+  background: rgba(212, 165, 116, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(212, 165, 116, 0.35);
+  transition: transform var(--base) var(--spring);
+}
+
+.inspector__thumb--private { transform: translateX(100%); }
+
+.inspector__opt {
+  position: relative;
+  z-index: 1;
+  background: none;
+  border: 0;
+  padding: 4px 14px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--muted, #9aa4b5);
+  cursor: pointer;
+}
+
+.inspector__opt[aria-pressed="true"] { color: var(--brass); }
+
+.inspector__pane { animation: rise var(--base) var(--spring); }
+
+.inspector__pane ul { margin: 0 0 8px; padding-left: 18px; }
+.inspector__pane li { margin: 3px 0; font-size: 13.5px; }
+.inspector__pane p { margin: 6px 0 0; }
+
+.cell--live:active {
+  transform: scale(0.94);
+  transition: transform var(--fast) var(--spring);
+}
+
+.board--active .board__frame {
+  border-color: var(--line-strong);
+  box-shadow: 0 0 0 1px rgba(79, 214, 224, 0.12), var(--shadow-soft);
+  transition: border-color var(--base) var(--spring), box-shadow var(--base) var(--spring);
+}
+
+/* ---- docs/18 section 3: answer-pipeline stepper in the HUD --------------- */
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 12px;
+}
+
+/* docs/18 section 4 kit: the stepper is the multi-step loader - pending
+   steps stay dim, the current one pulses proof-bright, finished ones check
+   off. Order and wording come from the component, never from the css. */
+.stepper__step {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 1.5px 7px;
+  transition: color var(--base) var(--spring), border-color var(--base) var(--spring);
+}
+
+.stepper__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  font-style: normal;
+  font-size: 8px;
+  line-height: 1;
+  color: var(--bg);
+  transition: background var(--base) var(--spring), border-color var(--base) var(--spring);
+}
+
+.stepper__step--current {
+  color: var(--proof);
+  border-color: rgba(79, 214, 224, 0.4);
+}
+.stepper__step--current .stepper__dot {
+  border-color: var(--proof);
+  background: var(--proof);
+  animation: nf-step-pulse 1.1s var(--spring) infinite;
+}
+
+.stepper__step--done {
+  color: var(--proof);
+}
+.stepper__step--done .stepper__dot {
+  background: var(--proof);
+  border-color: var(--proof);
+}
+
+.stepper--settled {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 9px;
+  animation: nf-settled-pop var(--base) var(--spring);
+}
+
+.stepper--onchain {
+  color: var(--proof);
+  border-color: rgba(79, 214, 224, 0.4);
+  box-shadow: 0 0 12px rgba(79, 214, 224, 0.18);
+}
+
+@keyframes nf-step-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(79, 214, 224, 0.35); }
+  50% { box-shadow: 0 0 0 4px rgba(79, 214, 224, 0); }
+}
+
+@keyframes nf-settled-pop {
+  0% { transform: scale(0.85); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Infinite/sweep animations do not flatten via 0ms durations alone, so they
+   get an explicit stop here; the one-shot cell pulses already collapse to
+   their end state through the tokens. */
+@media (prefers-reduced-motion: reduce) {
+  .stepper__step--current .stepper__dot, .stepper--settled, .battle__flash {
+    animation: none;
+  }
+  .battle__flash { opacity: 0; }
+}
+
+/* ---- docs/18 section 3: commitment fingerprint identicon ----------------- */
+
+.identicon {
+  display: inline-grid;
+  grid-template-columns: repeat(5, 4px);
+  grid-auto-rows: 4px;
+  gap: 1px;
+  margin: 0 5px 0 2px;
+  vertical-align: -3px;
+  animation: nf-settled-pop var(--base) var(--spring);
+}
+
+.identicon i {
+  border-radius: 1px;
+  animation: nf-ident-in var(--base) var(--spring) calc(var(--i, 0) * 14ms) both;
+}
+
+@keyframes nf-ident-in {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .identicon, .identicon i { animation: none; }
+}
+
+/* ---- docs/18 section 4: empty-state kit item ----------------------------- */
+
+.empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 22px 12px;
+  text-align: center;
+  animation: rise var(--base) var(--spring);
+}
+
+.empty-state__glyph { font-size: 22px; line-height: 1; color: var(--proof); opacity: 0.7; }
+.empty-state__title { margin: 0; font-size: 14px; }
+.empty-state__hint { margin: 0; }
+
+.identicon i.on {
+  background: rgba(79, 214, 224, calc(0.35 + var(--v, 0.5) * 0.65));
+}
+
+/* ---- docs/18 section 3: public-log timeline scrubber --------------------- */
+
+.log__timeline {
+  padding: 2px 2px 8px;
+}
+
+.log__ticks {
+  display: flex;
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.log__tick {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--line);
+  opacity: 0.35;
+  transition: opacity var(--fast) var(--spring), background var(--fast);
+}
+
+.log__tick.on { opacity: 1; }
+.log__tick--hit.on { background: var(--brass); }
+.log__tick--miss.on { background: var(--text-faint); }
+.log__tick--fire.on,
+.log__tick--commit.on,
+.log__tick--report.on { background: var(--proof); }
+
+.log__scrub {
+  width: 100%;
+  height: 14px;
+  accent-color: var(--proof);
+  cursor: pointer;
+}
+
+.log__row--fresh {
+  animation: nf-settled-pop var(--base) var(--spring);
+}
+
+/* ---- win confetti (docs/18 §2) -------------------------------------------
+   Pure-CSS burst on the win card: 36 deterministic pieces rain through the
+   card while the headline springs in. Transform/opacity only; aria-hidden;
+   removed entirely under prefers-reduced-motion. */
+.result { position: relative; overflow: hidden; }
+.result .confetti { position: absolute; inset: 0; pointer-events: none; }
+.confetti__piece {
+  position: absolute; top: -12px; left: var(--x);
+  width: var(--s); height: calc(var(--s) * 0.45);
+  opacity: 0;
+  animation: nf-confetti 2.8s var(--spring-soft) var(--d) 3 both;
+}
+.confetti__piece--c0 { background: var(--brass); }
+.confetti__piece--c1 { background: var(--proof); }
+.confetti__piece--c2 { background: var(--text-dim); }
+@keyframes nf-confetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  8% { opacity: 1; }
+  100% { transform: translateY(340px) rotate(calc(var(--r) + 480deg)); opacity: 0; }
+}
+.result--win h2 { animation: nf-trophy-in 0.7s var(--spring) both; }
+@keyframes nf-trophy-in {
+  0% { transform: scale(0.6) translateY(10px); opacity: 0; }
+  60% { transform: scale(1.06) translateY(0); opacity: 1; }
+  100% { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .result .confetti { display: none; }
+  .result--win h2 { animation: none; }
+}
+
+/* ---- ambient fog scene (docs/18 §3) ----------------------------------------
+   Three slow-drifting blurred blobs behind the content, over the static body
+   gradients, under the grain. Transform/opacity only (§5); removed under
+   prefers-reduced-motion. */
+.app__fog {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.app > :where(:not(.app__fog):not(.app__grain)) { position: relative; z-index: 1; }
+.app__fog i {
+  position: absolute;
+  width: 55vmax;
+  height: 55vmax;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+}
+.app__fog i:nth-child(1) {
+  left: -18vmax; top: -20vmax;
+  background: radial-gradient(circle, rgba(79, 214, 224, 0.10), transparent 65%);
+  animation: nf-fog-a 52s ease-in-out infinite alternate;
+}
+.app__fog i:nth-child(2) {
+  right: -20vmax; top: -8vmax;
+  background: radial-gradient(circle, rgba(212, 165, 116, 0.09), transparent 65%);
+  animation: nf-fog-b 64s ease-in-out infinite alternate;
+}
+.app__fog i:nth-child(3) {
+  left: 22vmax; bottom: -30vmax;
+  background: radial-gradient(circle, rgba(96, 120, 168, 0.10), transparent 65%);
+  animation: nf-fog-c 58s ease-in-out infinite alternate;
+}
+@keyframes nf-fog-a {
+  to { transform: translate(16vmax, 10vmax) scale(1.15); }
+}
+@keyframes nf-fog-b {
+  to { transform: translate(-14vmax, 14vmax) scale(0.9); }
+}
+@keyframes nf-fog-c {
+  to { transform: translate(-10vmax, -12vmax) scale(1.1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app__fog i { animation: none; }
+}
+
+/* ---- setup placement feedback (docs/18 section 1) ------------------------ */
+/* A dropped ship settles onto the grid with a spring; tray ships press like
+   physical buttons. transform/opacity only (docs/18 section 5); flattened
+   under prefers-reduced-motion. */
+.cell--settled { animation: nf-place-settle var(--base) var(--spring); }
+@keyframes nf-place-settle {
+  0% { transform: scale(0.7); }
+  55% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.tray__ship { transition: transform var(--fast) var(--spring), background var(--fast), border-color var(--fast); }
+.tray__ship:active { transform: scale(0.97); }
+@media (prefers-reduced-motion: reduce) {
+  .cell--settled { animation: none; }
+  .tray__ship:active { transform: none; }
+}
+
+/* glowing-effect kit item (docs/18 section 4): a soft proof-colored light
+   follows the pointer across glow panels and fades out on leave. The layer is
+   opacity-only and never takes clicks; the JS side never engages on coarse
+   pointers or under reduced motion, so those surfaces stay perfectly still. */
+.glow { position: relative; }
+.glow::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(180px circle at var(--gx, 50%) var(--gy, 50%),
+    color-mix(in srgb, var(--proof) 12%, transparent), transparent 70%);
+  opacity: var(--glow-o, 0);
+  transition: opacity var(--base) var(--spring);
+}
+
+/* ---- docs/18 sections 3+4: ambient grain (noise-background kit item) ------
+   A static film-grain layer over the whole scene: SVG turbulence tiles at a
+   whisper of opacity in overlay blend, so the dark surfaces read as shot on
+   film rather than flat digital black. Fixed and pointer-events:none - it
+   never intercepts a click, and being static it has no motion to reduce. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+  mix-blend-mode: overlay;
+  opacity: 0.04;
+}
+
+/* ---- docs/18 section 4 kit: scroll-reveal ---------------------------------
+   Panels rise into view once as they enter the viewport, then stay put.
+   Transform/opacity only (docs/18 section 5), eased by the shared spring so
+   the motion speaks the same language as everything else. Reduced-motion and
+   no-IntersectionObserver environments start revealed (see useReveal). */
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity calc(var(--base) * 2) var(--spring-soft),
+    transform calc(var(--base) * 2) var(--spring-soft);
+}
+.reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---- docs/18 section 4 kit: wobble-card ------------------------------------
+   Landing cards lean a few pixels toward the pointer while hovered and
+   spring home on leave. Transform is the only property that ever moves
+   (docs/18 section 5), eased by the shared spring. The JS side engages only
+   for fine pointers with motion allowed, so touch and reduced-motion
+   surfaces stay perfectly still. */
+.wobble-card {
+  transition: transform var(--base) var(--spring-soft);
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .wobble-card {
+    transition: none;
+    will-change: auto;
+  }
+}
+
+/* ---- docs/18 section 5: optimistic busy state ------------------------------
+   The Play button never goes silently dead while the driver sets a game up:
+   it says what is happening with a live dot and honest wording. Color and
+   opacity only; the pulse rides the shared reduced-motion flattening in
+   tokens.css, so calm users get a static, readable label. */
+.btn--primary:disabled { opacity: 0.75; cursor: wait; }
+.btn__busy { display: inline-flex; align-items: center; gap: 7px; }

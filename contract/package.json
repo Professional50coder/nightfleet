@@ -1,0 +1,15 @@
+{
+  "name": "@nightfleet/contract",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "compile": "compact compile +0.31.1 src/nightfleet.compact managed",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.16.0",
+    "@midnight-ntwrk/onchain-runtime-v3": "^3.0.0",
+    "vitest": "3.2.4"
+  }
+}
