@@ -14,7 +14,9 @@
 
 <p align="center"><img src="screenshots/gameplay.png" width="860" alt="NightFleet gameplay - your waters vs the fog"></p>
 
-https://github.com/user-attachments/assets/8fa38583-1cd1-4a16-b444-02257f8e7cbc
+<video src="https://github.com/Professional50coder/nightfleet/raw/main/video/nightfleet-demo-v3.mp4" controls width="860" muted></video>
+
+[Download the demo video](https://github.com/Professional50coder/nightfleet/releases/download/demo-video/nightfleet-demo-v3-1080p.mp4) (1080p master)
 
 
 ---
