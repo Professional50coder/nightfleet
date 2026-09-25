@@ -15,6 +15,39 @@
 
 https://github.com/user-attachments/assets/8fa38583-1cd1-4a16-b444-02257f8e7cbc
 
+---
+
+## LIVE ON PREPROD
+
+The NightFleet contract is deployed and confirmed on the Midnight Preprod test network.
+
+**Contract address**
+
+```
+15bd24d16878cfc5ee2537223ddd41a13f0ca451c1d64b796a4643b87c94bab6
+```
+
+**Verify it in one step** - query the public preprod indexer
+(`https://indexer.preprod.midnight.network/api/v3/graphql`):
+
+```graphql
+query {
+  contractAction(address: "15bd24d16878cfc5ee2537223ddd41a13f0ca451c1d64b796a4643b87c94bab6") {
+    __typename
+  }
+}
+```
+
+The answer is `ContractDeploy` - the contract exists on-chain, deployed from
+this repository. No explorer account, no trust in us: the indexer is the
+network's own read API.
+
+**Reproduce the deployment yourself** - `cli/deploy.js` runs the full path:
+generates a wallet, registers for dust, builds the unproven deploy transaction
+with midnight-js, submits it, and confirms via the indexer. Every receipt is
+written to [`deployments.json`](deployments.json).
+
+
 
 ---
 
