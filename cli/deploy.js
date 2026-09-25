@@ -548,13 +548,13 @@ export async function createMidnightProvider(config, env = {}, deps = {}) {
     const lines = ['the real Midnight deploy stack is not available yet:'];
     if (pre.missingPackages.length > 0) {
       lines.push(`  - missing packages: ${pre.missingPackages.join(', ')}`);
-      lines.push(`    install them pinned to midnight-js ${PINNED_VERSIONS.midnightJs} (docs/07 section 2)`);
+      lines.push(`    install them pinned to midnight-js ${PINNED_VERSIONS.midnightJs} (pinned versions)`);
     }
     if (!pre.hasSeed) {
       lines.push(`  - no deploy wallet: set ${WALLET_SEED_ENV} (keep it in .env, which is gitignored)`);
       if (config.faucet) lines.push(`    fund the wallet from the faucet: ${config.faucet}`);
     }
-    lines.push(`  - the proof server must be running at ${config.proofServer} (Docker; docs/02-SETUP.md step 3)`);
+    lines.push(`  - the proof server must be running at ${config.proofServer} (Docker - see the README "Run it" section)`);
     lines.push('use --dry-run to validate the configuration without any of this.');
     throw new DeployError(lines.join('\n'), EXIT.deploy);
   }
@@ -783,7 +783,7 @@ export async function createMidnightWalletProvider(config, env = {}, deps = {}) 
   // Balancing an unsynced dust wallet fails with "could not balance dust"
   // because the restored snapshot only gains its dust coins once the
   // registration event has been replayed from the indexer.
-  {
+  if (typeof facade.state === 'function') {
     const Rx = await import('rxjs');
     const synced = await Rx.firstValueFrom(
       facade.state().pipe(
@@ -838,7 +838,7 @@ export function explainDeployFailure(err, config) {
   if (code === 'ECONNREFUSED' || code === 'ENOTFOUND' || code === 'ETIMEDOUT') {
     return `a service the deploy needs is not reachable (${code}): ${base}\n`
       + `proof server ${config?.proofServer}, indexer ${config?.indexer}, node ${config?.node}\n`
-      + 'start the proof server (Docker, docs/02-SETUP.md step 3) and check the endpoints.';
+      + 'start the proof server (Docker, see the README run section) and check the endpoints.';
   }
   return base;
 }

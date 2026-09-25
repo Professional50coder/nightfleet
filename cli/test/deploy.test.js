@@ -142,7 +142,8 @@ describe('assertDeployReceipt', () => {
     expect(() => assertDeployReceipt(undefined)).toThrow(/instead of a deploy receipt/);
     expect(() => assertDeployReceipt({ txId: '0xbb' })).toThrow(/no contractAddress/);
     expect(() => assertDeployReceipt({ contractAddress: '  ', txId: '0xbb' })).toThrow(/no contractAddress/);
-    expect(() => assertDeployReceipt({ contractAddress: '0200aa' })).toThrow(/no txId/);
+    // submitTxAsync returns no txId by design: the indexer confirms instead
+    expect(assertDeployReceipt({ contractAddress: '0200aa' }).txId).toBe('async-submit-confirmed-by-indexer');
     expect(() => assertDeployReceipt({ contractAddress: '0200aa', txId: '0xbb', blockHeight: -1 }))
       .toThrow(/invalid blockHeight/);
     expect(() => assertDeployReceipt({ contractAddress: '0200aa', txId: '0xbb', blockHeight: 'soon' }))
@@ -744,21 +745,22 @@ describe('createMidnightProvider - wiring (fake modules; plumbing only, not proo
     };
     const modules = {
       '@midnight-ntwrk/midnight-js-contracts': {
-        deployContract: async (providers, options) => {
+        createUnprovenDeployTx: async (providers, options) => {
           calls.deploy = { providers, options };
           if (overrides.deployError) throw overrides.deployError;
           return overrides.deployed ?? {
-            deployTxData: {
-              public: { contractAddress: '0200feed', txId: '0xfeed', blockHeight: 77 },
-              private: { signingKey: 'SIGNING-KEY-MUST-NOT-LEAK' },
-            },
+            public: { contractAddress: '0200feed', txId: '0xfeed', blockHeight: 77 },
+            private: { signingKey: 'SIGNING-KEY-MUST-NOT-LEAK', unprovenTx: 'UNPROVEN' },
           };
+        },
+        submitTxAsync: async (providers, options) => {
+          calls.submitTx = { providers, options };
         },
       },
       '@midnight-ntwrk/midnight-js-indexer-public-data-provider': { indexerPublicDataProvider: () => ({ kind: 'public-data' }) },
       '@midnight-ntwrk/midnight-js-http-client-proof-provider': { httpClientProofProvider: () => ({ kind: 'proof' }) },
       '@midnight-ntwrk/midnight-js-node-zk-config-provider': { NodeZkConfigProvider: class {} },
-      '@midnight-ntwrk/midnight-js-level-private-state-provider': { levelPrivateStateProvider: () => ({ kind: 'private-state' }) },
+      '@midnight-ntwrk/midnight-js-level-private-state-provider': { levelPrivateStateProvider: () => ({ kind: 'private-state', setContractAddress: () => {}, set: () => {}, setSigningKey: () => {} }) },
       '@midnight-ntwrk/midnight-js-network-id': { setNetworkId: (id) => { calls.networkId = id; } },
       '@midnight-ntwrk/midnight-js-protocol/compact-js': { CompiledContract },
     };
