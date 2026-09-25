@@ -10,7 +10,8 @@
     "test": "vitest run",
     "prepare:chain": "node scripts/prepare-chain.mjs",
     "predev": "npm run prepare:chain --if-present",
-    "prebuild": "npm run prepare:chain"
+    "prebuild": "npm run prepare:chain",
+    "pretest": "npm run prepare:chain"
   },
   "dependencies": {
     "@midnight-ntwrk/compact-runtime": "^0.16.0",
