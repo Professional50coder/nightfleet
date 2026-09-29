@@ -73,8 +73,8 @@ export const NETWORK_PRESETS = Object.freeze({
     name: 'local',
     networkId: 'undeployed',
     node: 'http://localhost:9944',
-    indexer: 'http://localhost:8088/api/v4/graphql',
-    indexerWs: 'ws://localhost:8088/api/v4/graphql',
+    indexer: 'http://localhost:8088/api/v3/graphql',
+    indexerWs: 'ws://localhost:8088/api/v3/graphql',
     proofServer: DEFAULT_PROOF_SERVER_URL,
     faucet: null, // midnight-local-dev ships a pre-funded genesis wallet
     explorer: null,
@@ -83,8 +83,8 @@ export const NETWORK_PRESETS = Object.freeze({
     name: 'preprod',
     networkId: 'preprod',
     node: 'https://rpc.preprod.midnight.network',
-    indexer: 'https://indexer.preprod.midnight.network/api/v4/graphql',
-    indexerWs: 'wss://indexer.preprod.midnight.network/api/v4/graphql/ws',
+    indexer: 'https://indexer.preprod.midnight.network/api/v3/graphql',
+    indexerWs: 'wss://indexer.preprod.midnight.network/api/v3/graphql/ws',
     proofServer: DEFAULT_PROOF_SERVER_URL,
     faucet: 'https://midnight-tmnight-preprod.nethermind.dev/',
     // No confirmed Preprod explorer base URL yet; set NIGHTFLEET_EXPLORER_URL
